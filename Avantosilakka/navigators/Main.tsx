@@ -8,7 +8,7 @@ const Tab = createBottomTabNavigator();
 const Main = () => {
   return (
     <Tab.Navigator
-      initialRouteName="Location"
+      initialRouteName="Uintipaikka"
       screenOptions={{
         tabBarHideOnKeyboard: true,
         tabBarShowLabel: false,
@@ -17,7 +17,7 @@ const Main = () => {
       }}
     >
       <Tab.Screen
-      name="Location"
+      name="Uintipaikka"
       component={HomeNavigator}
       options={{
         tabBarIcon: ({ color }) => (

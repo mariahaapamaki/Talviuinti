@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Location from '../components/Location';
+import SwimmingPlace from '../components/SwimmingPlace';
 
 const Stack = createStackNavigator();
 
@@ -14,7 +15,14 @@ const MyStack = () => {
           headerShown: false,
         }}
       />
-    </Stack.Navigator>
+    {/*<Stack.Screen
+        name="PlaceDetail"
+        component={SwimmingPlace}
+        options={{
+          headerShown: false,
+        }}
+      /> */ }
+    </Stack.Navigator>    
   );
 };
 

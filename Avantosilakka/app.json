@@ -7,16 +7,26 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "image": "./assets/download4.png",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "resizeMode": "cover",
+            "image": "./assets/download4.png",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       }
     },
@@ -26,4 +36,6 @@
     "newArchEnabled": true
   }
 }
+
+
 

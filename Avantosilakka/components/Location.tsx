@@ -1,74 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Modal, TextInput, Pressable } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { Text, View, StyleSheet, Modal, TextInput, Pressable, Alert} from 'react-native';
+import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import SavePlaceButton from './SavePlaceButton';
+import GetButton from './ShowSwimmingPlaceButton';
+import { getAllSwimmingPlaces } from './api';
+import { Image } from 'expo-image';
+
 
 export default function ShowLocation() {
-  const [location, setLocation] = useState<Loc1>();
+  interface Place {
+    _id: string;
+    latitude: number;
+    longitude: number;
+    date: string;
+  }
+
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [mapRegion, setRegion] = useState<Region>();
+  const [mapRegion, setMapRegion] = useState<Region | null>(null);
   const [showModal, setShowModal] = useState(false);
-
-  interface Loc1 {
-    coords: LocationObjectCoords;
-    timestamp?: number;
-    mocked?: boolean;
-  }
-
-  interface Region {
-    latitude: number;
-    longitude: number;
-    latitudeDelta: number;
-    longitudeDelta: number;
-  }
-
-  interface LocationObjectCoords {
-    latitude: number;
-    longitude: number;
-    altitude: number | null;
-    accuracy: number | null;
-    altitudeAccuracy: number | null;
-    heading: number | null;
-    speed: number | null;
-  }
+  const [swimmingPlaces, setSwimmingPlaces] = useState<Place[]>([]);
+  const [checkboxValues, setCheckboxValues] = useState({
+    checkbox1: false,
+    checkbox2: false,
+  })
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setErrorMsg('Permission to access location was denied');
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({});
-      const latitude = location.coords.latitude ?? 0;
-      const longitude = location.coords.longitude ?? 0;
-      setLocation(location);
-      setRegion({ latitude, longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 });
+      const currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation(currentLocation);
+      setMapRegion({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      });
+
+      Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 1000,
+          distanceInterval: 1,
+        },
+        (location) => {
+          setLocation(location);
+        }
+      );
+
+      const places = await getAllSwimmingPlaces();
+      setSwimmingPlaces(places);
     })();
   }, []);
+
+  const handleCheckboxChange = (name: string, value: boolean) => {
+    setCheckboxValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }));
+    console.log('Checkbox values:', { ...checkboxValues, [name]: value });
+  };
 
   const markerClick = () => {
     setShowModal(true);
   };
-
-  let text = 'Waiting..';
-  let test2 = { latitude: 0, longitude: 0, latitudeDelta: 0, longitudeDelta: 0 };
-
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location && location.coords) {
-    text = JSON.stringify(location);
-  }
-
-  test2 = {
-    latitude: location?.coords.latitude ?? 0,
-    longitude: location?.coords.longitude ?? 0,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  };
-
+  //      <Image source={require('./download3.png')} style={styles.image} />
   const placeData = {
     name: 'My Place',
     latitude: location?.coords.latitude ?? 0,
@@ -77,19 +79,43 @@ export default function ShowLocation() {
 
   return (
     <View style={styles.container}>
-      <Text>AVANTOSILAKKA</Text>
-      <MapView
-        style={styles.map}
-        initialRegion={test2}
-        region={test2}
-        zoomTapEnabled={true}
-        showsUserLocation={true}
-        onRegionChange={(region) => setRegion(region)}
-        onMarkerPress={() => markerClick()}
+      {mapRegion && (
+        <MapView
+          style={styles.map}
+          initialRegion={mapRegion}
+          showsUserLocation={true}
+          onRegionChangeComplete={(region) => setMapRegion(region)}
+          onMarkerPress={markerClick}
+        >
+          {location && (
+            <Marker
+              coordinate={{
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              }}
+              pinColor="red"
+            />
+          )}
+          {swimmingPlaces.length > 0 &&
+            swimmingPlaces.map((place, index) => (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: place.latitude,
+                  longitude: place.longitude,
+                }}
+                pinColor="blue"
+              />
+            ))}
+        </MapView>
+      )}
+      <Modal
+        style={styles.modal}
+        visible={showModal}
+        onRequestClose={() => {
+          setShowModal(false);
+        }}
       >
-        <Marker coordinate={{ latitude: test2.latitude, longitude: test2.longitude }} />
-      </MapView>
-      <Modal style={styles.modal} visible={showModal} onRequestClose={() => { setShowModal(false); }}>
         <View style={styles.modalView}>
           <Text>Tänne voi vaikka merkkailla uintipaikkoja</Text>
           <TextInput style={styles.input} placeholder="Kirjoita tähän" />
@@ -102,10 +128,11 @@ export default function ShowLocation() {
         </View>
       </Modal>
       <SavePlaceButton placeData={placeData} />
-      <Text>{JSON.stringify(test2)}</Text>
+      <GetButton onCheckboxChange={handleCheckboxChange} />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -114,13 +141,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
+  image: {
+    width: 100,
+    height: 100,
+  },
   paragraph: {
     fontSize: 18,
     textAlign: 'center',
   },
   map: {
     width: '100%',
-    height: '75%',
+    height: '70%',
   },
   modal: {
     width: '60%',

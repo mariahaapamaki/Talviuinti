@@ -23,8 +23,8 @@ const SavePlaceButton: React.FC<SavePlaceButtonProps> = ({ placeData }) => {
   };
 
   return (
-    <View style={styles.buttonContainer}>
-      <Button title="Save Place" onPress={handleSave} />
+    <View style={styles.button}>
+      <Button title="Tallenna uintipaikka" onPress={handleSave} />
     </View>
   );
 };
@@ -32,6 +32,13 @@ const SavePlaceButton: React.FC<SavePlaceButtonProps> = ({ placeData }) => {
 const styles = StyleSheet.create({
   buttonContainer: {
     margin: 10,
+  },
+  button: {
+    backgroundColor: '#2196F3',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
   },
 });
 
