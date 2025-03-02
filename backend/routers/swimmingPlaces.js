@@ -1,30 +1,36 @@
-const SwimmingPlace = require('../models/swimmingPlace')
-const express = require('express')
-const router = express.Router()
+const PublicPlace = require('../models/swimmingPlace');
+const express = require('express');
+const router = express.Router();
 
 router.get(`/`, async (req, res) => {
-    const swimmingPlaceList = await SwimmingPlace.find()
+  const publicPlaceList = await PublicPlace.find();
 
-    if(!swimmingPlaceList) {
-        res.status(500).json({success:false})
-    }
-    res.send(swimmingPlaceList)
-})
+  if (!publicPlaceList) {
+    res.status(500).json({ success: false });
+  }
+  res.send(publicPlaceList);
+});
 
 router.post(`/`, (req, res) => {
-    const swimmingPlace = new SwimmingPlace({
-        latitude: req.body.latitude,
-        longitude: req.body.longitude,
-        userAdded: req.body.userAdded,
-        dateAdded: new Date().toString()
-    })
-    user.save().then((createdSwimmingPlace=> {
-        res.status(201).json(createdSwimmingPlace)
-    })).catch((err) => {
-        res.status(500).json({
-            error:err,
-            success: false
-        })
-    })
-})
-module.exports = router
+  const publicPlace = new PublicPlace({
+    latitude: req.body.latitude,
+    longitude: req.body.longitude,
+    userId: req.body.userId,
+    date: new Date().toString(),
+    isPublic: req.body.isPublic,
+    publicInfo: req.body.info,
+    name: req.body.name,
+    comment: req.body.comment
+  });
+
+  publicPlace.save().then((createdPublicPlace) => {
+    res.status(201).json(createdPublicPlace);
+  }).catch((err) => {
+    res.status(500).json({
+      error: err,
+      success: false
+    });
+  });
+});
+
+module.exports = router;

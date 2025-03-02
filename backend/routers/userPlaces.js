@@ -11,12 +11,31 @@ router.get(`/`, async (req, res) => {
     res.send(userPlaceList);
 });
 
+router.get('/:userId', async (req, res) => {
+    const { userId } = req.params;
+  
+    try {
+      const userPlaces = await UserPlace.find({ userId: userId });
+  
+      if (!userPlaces) {
+        return res.status(404).json({ success: false, message: 'No places found for this user.' });
+      }
+  
+      res.status(200).json(userPlaces);
+    } catch (error) {
+      console.error('Error fetching user places:', error);
+      res.status(500).json({ success: false, message: 'An error occurred while fetching user places.' });
+    }
+  });
+
 router.post(`/`, async (req, res) => {
     let userPlace = new UserPlace({
         latitude: req.body.latitude,
         longitude: req.body.longitude,
-        user: req.body.userAdded,
-        date: new Date().toString()
+        userId: req.body.userId,
+        date: new Date().toString(),
+        isPublic: req.body.isPublic,
+        info: req.body.info
     });
 
     userPlace = await userPlace.save();

@@ -2,13 +2,14 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Icon from "react-native-vector-icons/FontAwesome"
 import HomeNavigator from './HomeNavigator'
+import UserNavigator from "./UserNavigator"
 
 const Tab = createBottomTabNavigator();
 
 const Main = () => {
   return (
     <Tab.Navigator
-      initialRouteName="Uintipaikka"
+      initialRouteName="Käyttäjätiedot"
       screenOptions={{
         tabBarHideOnKeyboard: true,
         tabBarShowLabel: false,
@@ -16,32 +17,32 @@ const Main = () => {
         tabBarInactiveTintColor: 'gray'
       }}
     >
-      <Tab.Screen
-      name="Uintipaikka"
-      component={HomeNavigator}
+          <Tab.Screen
+      name="Käyttäjätiedot"
+      component={UserNavigator}
       options={{
         tabBarIcon: ({ color }) => (
           <Icon 
-          name="home"
+          name="user"
           style={{ position: "relative"}} 
           color={color} 
           size={30} />
         ),
       }}
       />
-    {/*<Tab.Screen
-      name="Reports"
+      <Tab.Screen
+      name="Uintipaikka"
       component={HomeNavigator}
       options={{
         tabBarIcon: ({ color }) => (
           <Icon 
-          name="swimmer"
+          name="map"
           style={{ position: "relative"}} 
           color={color} 
           size={30} />
         ),
       }}
-      />*/}
+      />
     </Tab.Navigator> 
   ); 
 }; 

@@ -6,14 +6,24 @@ import SavePlaceButton from './SavePlaceButton';
 import GetButton from './ShowSwimmingPlaceButton';
 import { getAllSwimmingPlaces } from './api';
 import { Image } from 'expo-image';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
+import { getBaseUrl } from '../components/api';
+import { getCurrentUser } from "../context/Auth.actions";
+import axios from 'axios';
 
 
 export default function ShowLocation() {
   interface Place {
-    _id: string;
-    latitude: number;
-    longitude: number;
-    date: string;
+    _id: string,
+    latitude: number,
+    longitude: number,
+    date: string,
+    userId: string,
+    isPublic: boolean,
+    name: string,
+    publicInfo: string,
+    comment: string
   }
 
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -21,6 +31,7 @@ export default function ShowLocation() {
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [swimmingPlaces, setSwimmingPlaces] = useState<Place[]>([]);
+  const[selectedPlace, setSelectedPlace] = useState<Place | null>();
   const [checkboxValues, setCheckboxValues] = useState({
     checkbox1: false,
     checkbox2: false,
@@ -54,8 +65,33 @@ export default function ShowLocation() {
         }
       );
 
-      const places = await getAllSwimmingPlaces();
+      const getPublicSwimmingPlaces = async () => {
+        try {
+          const response = await axios.get(`${getBaseUrl()}publicPlaces`);
+          return response.data;
+        } catch (error) {
+          console.error('Error fetching user places:', error);
+          throw error;
+        }
+      };
+
+      const getAllSwimmingPlaces2 = async () => {
+        const user = await getCurrentUser();
+        try {
+          const response = await axios.get(`${getBaseUrl()}userPlaces/${user.userId}`);
+          return response.data;
+        } catch (error) {
+          console.error('Error fetching user places:', error);
+          throw error;
+        }
+      };
+
+      const places = await getAllSwimmingPlaces2();
+      const places2 = await getPublicSwimmingPlaces()
       setSwimmingPlaces(places);
+      const addNewPlaces = (newPlaces: any) => {
+        setSwimmingPlaces((prevPlaces) => [...prevPlaces, ...newPlaces]);}
+      addNewPlaces(places2)
     })();
   }, []);
 
@@ -85,7 +121,6 @@ export default function ShowLocation() {
           initialRegion={mapRegion}
           showsUserLocation={true}
           onRegionChangeComplete={(region) => setMapRegion(region)}
-          onMarkerPress={markerClick}
         >
           {location && (
             <Marker
@@ -104,12 +139,18 @@ export default function ShowLocation() {
                   latitude: place.latitude,
                   longitude: place.longitude,
                 }}
-                pinColor="blue"
+                pinColor={place.isPublic ? "green" : "blue"}
+                onPress={() => {
+                  console.log(place)
+                  if (place.isPublic) {
+                    setSelectedPlace(place)
+                    setShowModal(true)
+                  }}}
               />
             ))}
         </MapView>
       )}
-      <Modal
+            <Modal
         style={styles.modal}
         visible={showModal}
         onRequestClose={() => {
@@ -117,8 +158,12 @@ export default function ShowLocation() {
         }}
       >
         <View style={styles.modalView}>
-          <Text>Tänne voi vaikka merkkailla uintipaikkoja</Text>
-          <TextInput style={styles.input} placeholder="Kirjoita tähän" />
+          {selectedPlace && ( // Render selected place data in modal
+            <View>
+              <Text>Name: {selectedPlace.name}</Text>
+              <Text>Info: {selectedPlace.publicInfo}</Text>
+            </View>
+          )}
           <Pressable
             style={[styles.button, styles.buttonClose]}
             onPress={() => setShowModal(false)}
@@ -127,6 +172,7 @@ export default function ShowLocation() {
           </Pressable>
         </View>
       </Modal>
+
       <SavePlaceButton placeData={placeData} />
       <GetButton onCheckboxChange={handleCheckboxChange} />
     </View>

@@ -1,10 +1,50 @@
 const mongoose = require('mongoose')
 
-const swimmingPlaceSchema = mongoose.Schema({
-    latitude: Number,
-    longitude: Number,
-    userAdded: Number,
-    dateAdded: String
+const publicPlaceSchema = mongoose.Schema({
+   latitude: {
+        type: Number,
+        required: true
+    },
+    longitude: {
+        type: Number,
+        required: true
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+   date: {
+        type: String,
+        default: (Date.now).toString()
+    },
+    isPublic: {
+        type: Boolean,
+        required: true,
+    },
+    publicInfo: {
+        type: String,
+        required: false
+    },
+    name: {
+        type: String,
+        required: false
+    },
+    comment: {
+            type: String,
+            required: false
+        }
 })
 
-exports.swimmingPlace = mongoose.model('SwimmingPlace', swimmingPlaceSchema)
+publicPlaceSchema.virtual('id').get(function () {
+    return this._id.toHexString()
+})
+
+publicPlaceSchema.set('toJSON', {
+    virtuals:true,
+})
+
+const PublicPlace = mongoose.model('PublicPlace', publicPlaceSchema);
+module.exports = PublicPlace;
+
+exports.PublicPlace = mongoose.model('PublicPlace', publicPlaceSchema);
+exports.publicPlaceSchema = publicPlaceSchema;

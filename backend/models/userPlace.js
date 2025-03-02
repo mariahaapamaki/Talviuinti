@@ -9,13 +9,21 @@ const userPlaceSchema = mongoose.Schema({
         type: Number,
         required: true
     },
-    user: {
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
    date: {
         type: String,
         default: (Date.now).toString()
+    },
+    isPublic: {
+        type: Boolean,
+        required: true,
+    },
+    info: {
+        type: String,
+        required: false
     },
 })
 

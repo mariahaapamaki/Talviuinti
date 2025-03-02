@@ -30,11 +30,11 @@ app.use(errorHandler);
 // Routers
 const userRouter = require('./routers/users');
 const userPlaceRouter = require('./routers/userPlaces');
-const swimmingPlaceRouter = require('./routers/swimmingPlaces');
+const publicPlaceRouter = require('./routers/swimmingPlaces');
 
 app.use(`${api}/users`, userRouter);
 app.use(`${api}/userplaces`, userPlaceRouter);
-app.use(`${api}/swimmingplaces`, swimmingPlaceRouter);
+app.use(`${api}/publicplaces`, publicPlaceRouter);
 
 // Database connection
 mongoose.connect(process.env.CONNECTION_STRING, {
