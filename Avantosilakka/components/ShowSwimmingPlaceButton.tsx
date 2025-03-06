@@ -61,16 +61,24 @@ const GetButton = ({ onCheckboxChange }: GetButtonProps) => {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#2196F3',
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: '#d9ffb3', // Light grey background color
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc', // Subtle border color
     alignItems: 'center',
-    marginTop: 10,
-    color: 'white'
+    justifyContent: 'center',
+    shadowColor: '#000', // Shadow for a modern look
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
   buttonText: {
-    color: 'white',
+    color: '#333', // Dark grey text color
     fontSize: 16,
+    fontWeight: '500'
   },
   modalContainer: {
     flex: 1,

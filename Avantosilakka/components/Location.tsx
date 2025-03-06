@@ -11,6 +11,7 @@ import Toast from 'react-native-toast-message';
 import { getBaseUrl } from '../components/api';
 import { getCurrentUser } from "../context/Auth.actions";
 import axios from 'axios';
+import SwimmingPlace from './SwimmingPlace';
 
 
 export default function ShowLocation() {
@@ -26,16 +27,25 @@ export default function ShowLocation() {
     comment: string
   }
 
+  interface Comment {
+    _id: string,
+    placeId: string,
+    userId: string,
+    comment: string,
+    date: string
+  }
+
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [swimmingPlaces, setSwimmingPlaces] = useState<Place[]>([]);
-  const[selectedPlace, setSelectedPlace] = useState<Place | null>();
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [commentList, setCommentList] = useState<Comment[]>([]);
   const [checkboxValues, setCheckboxValues] = useState({
     checkbox1: false,
     checkbox2: false,
-  })
+  });
 
   useEffect(() => {
     (async () => {
@@ -62,51 +72,43 @@ export default function ShowLocation() {
         },
         (location) => {
           setLocation(location);
+          fetchSwimmingPlaces();
         }
       );
-
-      const getPublicSwimmingPlaces = async () => {
-        try {
-          const response = await axios.get(`${getBaseUrl()}publicPlaces`);
-          return response.data;
-        } catch (error) {
-          console.error('Error fetching user places:', error);
-          throw error;
-        }
-      };
-
-      const getAllSwimmingPlaces2 = async () => {
-        const user = await getCurrentUser();
-        try {
-          const response = await axios.get(`${getBaseUrl()}userPlaces/${user.userId}`);
-          return response.data;
-        } catch (error) {
-          console.error('Error fetching user places:', error);
-          throw error;
-        }
-      };
-
-      const places = await getAllSwimmingPlaces2();
-      const places2 = await getPublicSwimmingPlaces()
-      setSwimmingPlaces(places);
-      const addNewPlaces = (newPlaces: any) => {
-        setSwimmingPlaces((prevPlaces) => [...prevPlaces, ...newPlaces]);}
-      addNewPlaces(places2)
+      fetchSwimmingPlaces();
     })();
   }, []);
+
+  const fetchSwimmingPlaces = async () => {
+    try {
+      const user = await getCurrentUser();
+      const [userPlacesResponse, publicPlacesResponse] = await Promise.all([
+        axios.get(`${getBaseUrl()}userPlaces/${user.userId}`),
+        axios.get(`${getBaseUrl()}publicPlaces`)
+      ]);
+      setSwimmingPlaces([...userPlacesResponse.data, ...publicPlacesResponse.data]);
+    } catch (error) {
+      console.error('Error fetching swimming places:', error);
+    }
+  };
 
   const handleCheckboxChange = (name: string, value: boolean) => {
     setCheckboxValues((prevValues) => ({
       ...prevValues,
       [name]: value,
     }));
-    console.log('Checkbox values:', { ...checkboxValues, [name]: value });
   };
 
-  const markerClick = () => {
-    setShowModal(true);
+  const getComments = async (placeId: string) => {
+    try {
+      const response = await axios.get(`${getBaseUrl()}comments?placeId=${placeId}`);
+      const commentList = response.data; // Assuming the response data is an array of comments
+      setCommentList(commentList); // Update the state with the comments
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
   };
-  //      <Image source={require('./download3.png')} style={styles.image} />
+
   const placeData = {
     name: 'My Place',
     latitude: location?.coords.latitude ?? 0,
@@ -132,25 +134,26 @@ export default function ShowLocation() {
             />
           )}
           {swimmingPlaces.length > 0 &&
-            swimmingPlaces.map((place, index) => (
+            swimmingPlaces.map((place) => (
               <Marker
-                key={index}
+                key={place._id}
                 coordinate={{
                   latitude: place.latitude,
                   longitude: place.longitude,
                 }}
                 pinColor={place.isPublic ? "green" : "blue"}
                 onPress={() => {
-                  console.log(place)
                   if (place.isPublic) {
-                    setSelectedPlace(place)
-                    setShowModal(true)
-                  }}}
+                    setSelectedPlace(place);
+                    getComments(place._id);
+                    setShowModal(true);
+                  }
+                }}
               />
             ))}
         </MapView>
       )}
-            <Modal
+      <Modal
         style={styles.modal}
         visible={showModal}
         onRequestClose={() => {
@@ -160,16 +163,31 @@ export default function ShowLocation() {
         <View style={styles.modalView}>
           {selectedPlace && ( // Render selected place data in modal
             <View>
-              <Text>Name: {selectedPlace.name}</Text>
-              <Text>Info: {selectedPlace.publicInfo}</Text>
+              <Text>Paikan nimi: {selectedPlace.name}</Text>
+              <Text>Lisätiedot: {selectedPlace.publicInfo}</Text>
+              <SwimmingPlace placeId={selectedPlace._id} />
             </View>
           )}
+
           <Pressable
-            style={[styles.button, styles.buttonClose]}
+            style={styles.button}
             onPress={() => setShowModal(false)}
           >
             <Text>Sulje</Text>
           </Pressable>
+          <View style={styles.modalView}>
+            <Text>Käyttäjien kommentit</Text>
+            {commentList.length
+              ?  commentList.map((comment) => (
+                <View key={comment._id} style={styles.commentContainer}>
+                  <Text key={comment.comment}>{comment.comment}</Text>
+                  <View key={comment.date} style={styles.userIdText}>
+                  <Text key={comment.placeId}>{comment.userId}</Text>
+                  </View>
+                  </View>
+                ))
+              : null}
+          </View>
         </View>
       </Modal>
 
@@ -186,6 +204,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+  },
+  userIdText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    color: '#555',
   },
   image: {
     width: 100,
@@ -209,13 +232,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
   },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    fontWeight: 'bold',
-    color: 'white',
-  },
+
   buttonOpen: {
     backgroundColor: '#F194FF',
     fontWeight: 'bold',
@@ -225,6 +242,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#2196F3',
     fontWeight: 'bold',
     color: 'white',
+  },
+  button: {
+    backgroundColor: '#d9ffb3', // Light grey background color
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc', // Subtle border color
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000', // Shadow for a modern look
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#333', // Dark grey text color
+    fontSize: 16,
+    fontWeight: '500'
   },
   modalView: {
     margin: 20,
@@ -241,4 +278,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-});
+  commentContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    paddingVertical: 10,
+  },
+})
+

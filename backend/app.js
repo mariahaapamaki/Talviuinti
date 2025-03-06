@@ -16,14 +16,13 @@ app.options('*', cors());
 app.use(express.json());
 app.use(morgan('tiny'));
 
-// Define paths to exclude with correct structure
+// Token ja polut jotka eivät tarkasta tokenia
 const excludedPaths = [
     { url: `${api}/users/login`, methods: ['POST'] },
     { url: `${api}/users/signup`, methods: ['POST'] }
 ];
 
-// Use the custom excludePaths middleware
-//app.use(excludePaths(excludedPaths, authJwt));
+app.use(excludePaths(excludedPaths, authJwt));
 
 app.use(errorHandler);
 
@@ -31,10 +30,12 @@ app.use(errorHandler);
 const userRouter = require('./routers/users');
 const userPlaceRouter = require('./routers/userPlaces');
 const publicPlaceRouter = require('./routers/swimmingPlaces');
+const commentRouter = require('./routers/comments');
 
 app.use(`${api}/users`, userRouter);
 app.use(`${api}/userplaces`, userPlaceRouter);
 app.use(`${api}/publicplaces`, publicPlaceRouter);
+app.use(`${api}/comments`, commentRouter)
 
 // Database connection
 mongoose.connect(process.env.CONNECTION_STRING, {

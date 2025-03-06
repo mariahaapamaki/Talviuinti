@@ -7,6 +7,8 @@ import { setCurrentUser } from '../context/Auth.actions';
 import AuthGlobal from './AuthGlobal';
 
 export interface DecodedToken {
+  exp: any,
+  iat: any,
   userId: string;
   userName: string;
   isAdmin: boolean;

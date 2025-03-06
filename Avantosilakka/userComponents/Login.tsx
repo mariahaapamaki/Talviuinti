@@ -9,6 +9,11 @@ import Error from '../shared/Error';
 
 import AuthGlobal from '../components/AuthGlobal';
 import {loginUser} from '../context/Auth.actions'
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+   
 
 type RootStackParamList = {
   Login: undefined;
@@ -22,23 +27,31 @@ type LoginScreenRouteProp = RouteProp<RootStackParamList, 'Login'>;
 interface LoginProps {
   navigation: LoginScreenNavigationProp;
   route: LoginScreenRouteProp;
+  onLogin: () => void
 }
 
 const Login = (props: LoginProps) => {
-  const { navigation } = props;
+  const { navigation, onLogin } = props;
   const context = useContext(AuthGlobal)
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const navigation2 = useNavigation()
   useEffect(() => {
     try {
       if (context.stateUser.isAuthenticate === true) {
-        navigation.navigate('UserProfile');
-      }
+        onLogin()
+        navigation2.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Käyttäjätiedot', params: { screen: 'Login' } }],
+          })
+  )}
     } catch (error) {
     }
-  }, [context.stateUser.isAuthenticate, navigation]);
+  }, [context.stateUser.isAuthenticate, navigation2, onLogin]);
+  
 
   const handleSubmit = () => {
     const user = {
@@ -49,6 +62,9 @@ const Login = (props: LoginProps) => {
       setError('Tarkista käyttäjätunnus ja salasana');
     } else {
       loginUser(user, context.dispatch);
+
+
+            // Perform login logic
     }
   };
   

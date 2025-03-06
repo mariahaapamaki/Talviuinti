@@ -17,10 +17,6 @@ const userPlaceSchema = mongoose.Schema({
         type: String,
         default: (Date.now).toString()
     },
-    isPublic: {
-        type: Boolean,
-        required: true,
-    },
     info: {
         type: String,
         required: false

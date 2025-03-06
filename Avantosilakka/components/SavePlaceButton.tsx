@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Button, StyleSheet, Alert, Modal, Text } from 'react-native';
+import { View, Button, StyleSheet, Alert, Modal, Text, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { getBaseUrl } from '../components/api';
@@ -99,12 +99,13 @@ console.log(placeData)
   }
 };
 
-const SavePlaceButton: React.FC<SavePlaceButtonProps> = ({ placeData }) => {
+const SavePlaceButton = (props: SavePlaceButtonProps) => {
   const [showModal, setShowModal] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
   const [info, setInfo] = useState('');
   const [publicInfo, setPublicInfo] = useState('');
   const [publicName, setPublicName] = useState('');
+  const placeData = props.placeData
 
   const handleSave = async () => {
     const updatedPlaceData = {
@@ -114,7 +115,6 @@ const SavePlaceButton: React.FC<SavePlaceButtonProps> = ({ placeData }) => {
       publicInfo: publicInfo,
       name: publicName,
     };
-
     try {
       const result = await saveUserPlace2(updatedPlaceData);
       if (result) {
@@ -144,8 +144,8 @@ const SavePlaceButton: React.FC<SavePlaceButtonProps> = ({ placeData }) => {
   };
 
   return (
-    <View style={styles.button}>
-      <Button title="Merkitse uinti" onPress={() => setShowModal(true)} />
+    <View>
+      <Pressable style={styles.button} onPress={() => setShowModal(true)}><Text>Merkitse uinti</Text></Pressable>
       <Modal
         visible={showModal}
         onRequestClose={() => setShowModal(false)}
@@ -196,7 +196,21 @@ const SavePlaceButton: React.FC<SavePlaceButtonProps> = ({ placeData }) => {
 
 const styles = StyleSheet.create({
   button: {
-    margin: 20,
+    backgroundColor: '#d9ffb3', // Light grey background color
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc', // Subtle border color
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000', // Shadow for a modern look
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    padding: 2,
+    
   },
   modalContainer: {
     flex: 1,
@@ -234,17 +248,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
   },
+
   saveButton: {
-    backgroundColor: '#2196F3',
-    padding: 10,
+    backgroundColor: '#607D8B',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 5,
+    marginVertical: 10,
+    alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#f44336',
-    padding: 10,
+    backgroundColor: '#BDBDBD',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 5,
-    marginTop: 10,
+    marginVertical: 10,
+    alignItems: 'center',
   },
+    buttonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: '600'
+    }
 });
 
 export default SavePlaceButton;

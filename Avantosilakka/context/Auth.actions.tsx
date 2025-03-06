@@ -75,7 +75,6 @@ export const getCurrentUser = async () => {
     const userString = await AsyncStorage.getItem('user');
     if (userString) {
       const user = JSON.parse(userString);
-      console.log("Retrieved current user:", user); // Add this log
   
       // If userId is missing, retrieve it from the token
       if (!user.userId) {
