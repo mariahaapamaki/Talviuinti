@@ -1,34 +1,26 @@
-import {useState, useEffect, useRef } from 'react';
-import MapView from 'react-native-maps';
-import { StyleSheet, View, Text } from 'react-native';
-import Location from './components/Location';
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import Toast from 'react-native-toast-message'
-
-
-//Context API
-import Auth from './components/Auth'
-
-//Navigators
-import Main from './navigators/Main'
+import Toast from 'react-native-toast-message';
+import Header from './components/Header'
+import { Provider } from 'react-redux';
+import store from './Redux/store';
+import Auth from './components/Auth';
+import AppNavigator from './navigators/AppNavigator';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  }
-  
-      return (
-        <Auth>
-          <NavigationContainer>
-          <Main isLoggedIn={isLoggedIn} handleLogin={handleLogin} />
-          <Toast/>
+  return (
+    <Provider store={store}>
+      <Auth>
+        <NavigationContainer>
+          <Header />
+          <AppNavigator />
+          <Toast />
         </NavigationContainer>
-        </Auth>
-      );
-    }
-    
+      </Auth>
+    </Provider>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -38,4 +30,5 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '50%',
   },
-})
+});
+

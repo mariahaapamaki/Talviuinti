@@ -4,6 +4,7 @@ const commentSchema = mongoose.Schema({
   placeId: { type: mongoose.Schema.Types.ObjectId, ref: 'PublicPlace', required: true },
   comment: { type: String, required: true },
   userId: { type: String, required: true },
+  userName: {type: String, required: true},
   date: { type: Date, default: Date.now }
 });
 

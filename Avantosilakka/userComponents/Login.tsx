@@ -1,24 +1,21 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { TextInput } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import { RouteProp, CommonActions } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import Error from '../shared/Error';
 
+
 import AuthGlobal from '../components/AuthGlobal';
-import {loginUser} from '../context/Auth.actions'
-import { useNavigation, CommonActions } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
-   
+import { loginUser } from '../context/Auth.actions';
 
 type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   UserProfile: undefined;
+  Main: undefined;
 };
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
@@ -26,34 +23,17 @@ type LoginScreenRouteProp = RouteProp<RootStackParamList, 'Login'>;
 
 interface LoginProps {
   navigation: LoginScreenNavigationProp;
-  route: LoginScreenRouteProp;
-  onLogin: () => void
+  //route: LoginScreenRouteProp;
 }
 
 const Login = (props: LoginProps) => {
-  const { navigation, onLogin } = props;
-  const context = useContext(AuthGlobal)
+  const { navigation } = props;
+  const context = useContext(AuthGlobal);
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const navigation2 = useNavigation()
-  useEffect(() => {
-    try {
-      if (context.stateUser.isAuthenticate === true) {
-        onLogin()
-        navigation2.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: 'Käyttäjätiedot', params: { screen: 'Login' } }],
-          })
-  )}
-    } catch (error) {
-    }
-  }, [context.stateUser.isAuthenticate, navigation2, onLogin]);
-  
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const user = {
       userName,
       password,
@@ -61,14 +41,20 @@ const Login = (props: LoginProps) => {
     if (userName === '' || password === '') {
       setError('Tarkista käyttäjätunnus ja salasana');
     } else {
-      loginUser(user, context.dispatch);
-
-
-            // Perform login logic
+      const success = await loginUser(user, context.dispatch);
+      if (success) {
+        await AsyncStorage.setItem('isAuthenticated', JSON.stringify(true));
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Main' }],
+          })
+        );
+      } else {
+        setError('Kirjautuminen epäonnistui');
+      }
     }
   };
-  
-      
 
   return (
     <View style={styles.container}>
@@ -105,6 +91,7 @@ const styles = StyleSheet.create({
     height: 100,
     alignSelf: 'center',
     marginBottom: 20,
+    borderRadius: 50,
   },
   container: {
     margin: 20,
@@ -138,5 +125,3 @@ const styles = StyleSheet.create({
 });
 
 export default Login;
-
-

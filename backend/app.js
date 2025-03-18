@@ -22,7 +22,7 @@ const excludedPaths = [
     { url: `${api}/users/signup`, methods: ['POST'] }
 ];
 
-app.use(excludePaths(excludedPaths, authJwt));
+// app.use(excludePaths(excludedPaths, authJwt));
 
 app.use(errorHandler);
 
@@ -32,6 +32,7 @@ const userPlaceRouter = require('./routers/userPlaces');
 const publicPlaceRouter = require('./routers/swimmingPlaces');
 const commentRouter = require('./routers/comments');
 
+// Middlewares for routes
 app.use(`${api}/users`, userRouter);
 app.use(`${api}/userplaces`, userPlaceRouter);
 app.use(`${api}/publicplaces`, publicPlaceRouter);
@@ -39,8 +40,6 @@ app.use(`${api}/comments`, commentRouter)
 
 // Database connection
 mongoose.connect(process.env.CONNECTION_STRING, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     dbName: 'Avantosilakka'
 })
 .then(() => {

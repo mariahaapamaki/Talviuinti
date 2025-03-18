@@ -6,6 +6,8 @@ import { getBaseUrl } from '../components/api';
 import { getCurrentUser } from "../context/Auth.actions";
 import { Checkbox, TextInput } from 'react-native-paper';
 import axios from 'axios';
+import geolib from 'geolib';
+import { getDistance } from 'geolib';
 
 interface SavePlaceButtonProps {
   placeData: {
@@ -13,7 +15,20 @@ interface SavePlaceButtonProps {
     latitude: number;
     longitude: number;
   };
+  existingPublicPlaces: Array<{ latitude: number; longitude: number }>; // Existing swimming places
+  onSave: (placeData: any) => void; // Function to handle saving the place
 }
+
+interface Place {
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface Existing {
+  latitude: number; longitude: number 
+}
+
 
 const saveUserPlace2 = async (placeData: any) => {
   const token = await AsyncStorage.getItem('jwt');
@@ -99,13 +114,16 @@ console.log(placeData)
   }
 };
 
-const SavePlaceButton = (props: SavePlaceButtonProps) => {
+const SavePlaceButton = (props) => {
   const [showModal, setShowModal] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
   const [info, setInfo] = useState('');
   const [publicInfo, setPublicInfo] = useState('');
   const [publicName, setPublicName] = useState('');
-  const placeData = props.placeData
+
+  const placeData: Place = props.placeData
+  const existingPublicPlaces: Existing[] = props.existingPublicPlaces
+
 
   const handleSave = async () => {
     const updatedPlaceData = {
@@ -115,6 +133,36 @@ const SavePlaceButton = (props: SavePlaceButtonProps) => {
       publicInfo: publicInfo,
       name: publicName,
     };
+
+    if (isPublic) {
+      const test = existingPublicPlaces !== undefined ? existingPublicPlaces : [];
+      const isDuplicate = test.some((existingPlace) => {
+        console.log('existingPlace', existingPlace.latitude, existingPlace.longitude);
+        console.log('placeData', placeData.latitude, placeData.longitude);
+    
+        try {
+          const distance = getDistance(
+            { latitude: placeData.latitude, longitude: placeData.longitude },
+            { latitude: existingPlace.latitude, longitude: existingPlace.longitude }
+          );
+          console.log('distance', distance);
+    
+          return distance < 50;
+        } catch (error) {
+          console.error('Error calculating distance:', error);
+          return false; // Skip this iteration if an error occurs
+        }
+      });
+
+      if (isDuplicate) {
+        Alert.alert(
+          'Virhe',
+          'Tämä uintipaikka löytyy jo kartalta eikä sitä voi tallentaa enää uudestaan. Voit kuitenkin lisätä halutessasi kommentin klikkaamalla kartalla olevaa merkkiä.'
+        );
+        return;
+      }
+    }
+
     try {
       const result = await saveUserPlace2(updatedPlaceData);
       if (result) {
@@ -122,13 +170,13 @@ const SavePlaceButton = (props: SavePlaceButtonProps) => {
           const publicResult = await savePublicPlace(updatedPlaceData);
           if (publicResult) {
             Alert.alert('Success', 'Public place saved successfully!');
-            setShowModal(false)
+            setShowModal(false);
           } else {
             Alert.alert('Error', 'Failed to save public place.');
           }
         } else {
           Alert.alert('Success', 'Place saved successfully!');
-          setShowModal(false)
+          setShowModal(false);
         }
       } else {
         Alert.alert('Error', 'Failed to save place.');
@@ -143,9 +191,19 @@ const SavePlaceButton = (props: SavePlaceButtonProps) => {
     setIsPublic(newChecked);
   };
 
+  const handleOpenModal = () => {
+    setInfo(''); // Reset the input fields
+    setPublicInfo(''); // Reset public info field
+    setPublicName(''); // Reset public name field
+    setShowModal(true); // Open the modal
+    setIsPublic(false); // Reset the public place checkbox
+  };
+
   return (
     <View>
-      <Pressable style={styles.button} onPress={() => setShowModal(true)}><Text>Merkitse uinti</Text></Pressable>
+      <View style={styles.buttonMargin}>
+        <Button title="Merkitse uinti" onPress={() => handleOpenModal()} />
+      </View>
       <Modal
         visible={showModal}
         onRequestClose={() => setShowModal(false)}
@@ -164,23 +222,24 @@ const SavePlaceButton = (props: SavePlaceButtonProps) => {
                 status={isPublic ? 'checked' : 'unchecked'}
                 onPress={handlePress}
               />
-              <Text style={styles.text}>Merkitäänkö samalla uudeksi yleiseksi uintipaikaksi</Text>
+              <Text style={styles.text}>
+                Merkitäänkö samalla uudeksi yleiseksi uintipaikaksi
+              </Text>
             </View>
-            {isPublic ? (
+            {isPublic && (
               <View>
                 <TextInput
-                  placeholder='Uintipaikan nimi tähän'
+                  placeholder="Uintipaikan nimi tähän"
                   value={publicName}
                   onChangeText={(text) => setPublicName(text)}
                 />
                 <TextInput
-                  placeholder='Uintipaikan lisätiedot tähän'
+                  placeholder="Uintipaikan lisätiedot tähän"
                   value={publicInfo}
                   onChangeText={(text) => setPublicInfo(text)}
                 />
               </View>
-            ) : null}
-
+            )}
             <View style={styles.saveButton}>
               <Button title="Tallenna uintipaikka" onPress={handleSave} />
             </View>
@@ -195,6 +254,9 @@ const SavePlaceButton = (props: SavePlaceButtonProps) => {
 };
 
 const styles = StyleSheet.create({
+  buttonMargin: {
+    margin: 10,
+  },
   button: {
     backgroundColor: '#d9ffb3', // Light grey background color
     paddingVertical: 10,
@@ -250,18 +312,14 @@ const styles = StyleSheet.create({
   },
 
   saveButton: {
-    backgroundColor: '#607D8B',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    //color: '#607D8B',
+   // paddingVertical: 10,
+   // paddingHorizontal: 20,
+   // borderRadius: 5,
     marginVertical: 10,
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#BDBDBD',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
     marginVertical: 10,
     alignItems: 'center',
   },

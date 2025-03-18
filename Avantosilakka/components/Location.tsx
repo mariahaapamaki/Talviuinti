@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Modal, TextInput, Pressable, Alert} from 'react-native';
+import { Text, View, StyleSheet, Modal, Button } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import SavePlaceButton from './SavePlaceButton';
 import GetButton from './ShowSwimmingPlaceButton';
-import { getAllSwimmingPlaces } from './api';
-import { Image } from 'expo-image';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message';
+import axios from 'axios';
 import { getBaseUrl } from '../components/api';
 import { getCurrentUser } from "../context/Auth.actions";
-import axios from 'axios';
 import SwimmingPlace from './SwimmingPlace';
-
 
 export default function ShowLocation() {
   interface Place {
@@ -25,14 +20,24 @@ export default function ShowLocation() {
     name: string,
     publicInfo: string,
     comment: string
+    onSave: () => Promise<void>;
   }
 
   interface Comment {
     _id: string,
     placeId: string,
     userId: string,
+    userName: string,
     comment: string,
     date: string
+  }
+
+  interface SavePlaceButtonProps {
+    placeData: {
+      name: string;
+      latitude: number;
+      longitude: number;
+    };
   }
 
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -43,8 +48,8 @@ export default function ShowLocation() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [commentList, setCommentList] = useState<Comment[]>([]);
   const [checkboxValues, setCheckboxValues] = useState({
-    checkbox1: false,
-    checkbox2: false,
+    checkbox1: true,
+    checkbox2: true,
   });
 
   useEffect(() => {
@@ -72,21 +77,38 @@ export default function ShowLocation() {
         },
         (location) => {
           setLocation(location);
-          fetchSwimmingPlaces();
         }
       );
-      fetchSwimmingPlaces();
     })();
   }, []);
+
+  useEffect(() => {
+    fetchSwimmingPlaces();
+  }, [checkboxValues]);
 
   const fetchSwimmingPlaces = async () => {
     try {
       const user = await getCurrentUser();
+      if (!user || !user.userId) {
+        console.log('User is not logged in');
+        return;
+      }
+
       const [userPlacesResponse, publicPlacesResponse] = await Promise.all([
         axios.get(`${getBaseUrl()}userPlaces/${user.userId}`),
         axios.get(`${getBaseUrl()}publicPlaces`)
       ]);
-      setSwimmingPlaces([...userPlacesResponse.data, ...publicPlacesResponse.data]);
+
+      let places: Place[] = [];
+      if (checkboxValues.checkbox1 && checkboxValues.checkbox2) {
+        places = [...userPlacesResponse.data, ...publicPlacesResponse.data];
+      } else if (checkboxValues.checkbox1) {
+        places = userPlacesResponse.data;
+      } else if (checkboxValues.checkbox2) {
+        places = publicPlacesResponse.data;
+      }
+
+      setSwimmingPlaces(places);
     } catch (error) {
       console.error('Error fetching swimming places:', error);
     }
@@ -101,11 +123,24 @@ export default function ShowLocation() {
 
   const getComments = async (placeId: string) => {
     try {
-      const response = await axios.get(`${getBaseUrl()}comments?placeId=${placeId}`);
-      const commentList = response.data; // Assuming the response data is an array of comments
-      setCommentList(commentList); // Update the state with the comments
+      console.log(`Fetching comments for placeId: ${placeId}`); 
+      const response = await axios.get(`${getBaseUrl()}comments/${placeId}`);
+      if (response.status === 200 || response.status === 201) {
+        console.log('Response data:', response.data);
+
+        const commentList = response.data !== null || response.data.length > 0 ? response.data : []
+        // Sort comments by date in descending order
+        if (commentList.length > 0) {
+        commentList.sort((a: Comment, b: Comment) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        }
+        setCommentList(commentList); 
+      } else {
+        console.error('Unexpected response status:', response.status);
+        setCommentList([]);
+      }
     } catch (error) {
       console.error('Error fetching comments:', error);
+      setCommentList([]); 
     }
   };
 
@@ -113,6 +148,11 @@ export default function ShowLocation() {
     name: 'My Place',
     latitude: location?.coords.latitude ?? 0,
     longitude: location?.coords.longitude ?? 0,
+  };
+
+  const handleSavePlace = async () => {
+    // Save place logic here
+    await fetchSwimmingPlaces(); // Fetch swimming places after saving
   };
 
   return (
@@ -163,52 +203,53 @@ export default function ShowLocation() {
         <View style={styles.modalView}>
           {selectedPlace && ( // Render selected place data in modal
             <View>
-              <Text>Paikan nimi: {selectedPlace.name}</Text>
+              <Text style={styles.header}> {selectedPlace.name}</Text>
               <Text>Lisätiedot: {selectedPlace.publicInfo}</Text>
               <SwimmingPlace placeId={selectedPlace._id} />
             </View>
           )}
 
-          <Pressable
-            style={styles.button}
+          <Button
+          title="Sulje"
             onPress={() => setShowModal(false)}
           >
-            <Text>Sulje</Text>
-          </Pressable>
+          </Button>
           <View style={styles.modalView}>
             <Text>Käyttäjien kommentit</Text>
-            {commentList.length
+            {commentList.length > 0
               ?  commentList.map((comment) => (
                 <View key={comment._id} style={styles.commentContainer}>
                   <Text key={comment.comment}>{comment.comment}</Text>
-                  <View key={comment.date} style={styles.userIdText}>
-                  <Text key={comment.placeId}>{comment.userId}</Text>
-                  </View>
+                  <Text key={comment.date} style={styles.commentText}>{comment.userName}</Text>
                   </View>
                 ))
-              : null}
+              :               
+              <Text>Ei kommentteja</Text>}
           </View>
         </View>
       </Modal>
+      <SavePlaceButton
+  placeData={placeData} // Prop for place-specific data
+  existingPublicPlaces={swimmingPlaces} // Prop for existing swimming places
+  onSave={handleSavePlace} // Prop for a callback function
+/>
 
-      <SavePlaceButton placeData={placeData} />
       <GetButton onCheckboxChange={handleCheckboxChange} />
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
-  },
-  userIdText: {
-    fontSize: 12,
-    fontStyle: 'italic',
-    color: '#555',
+    padding: 10,
   },
   image: {
     width: 100,
@@ -220,7 +261,7 @@ const styles = StyleSheet.create({
   },
   map: {
     width: '100%',
-    height: '70%',
+    height: '80%',
   },
   modal: {
     width: '60%',
@@ -232,7 +273,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
   },
-
   buttonOpen: {
     backgroundColor: '#F194FF',
     fontWeight: 'bold',
@@ -283,5 +323,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
     paddingVertical: 10,
   },
-})
+  commentText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+});
 

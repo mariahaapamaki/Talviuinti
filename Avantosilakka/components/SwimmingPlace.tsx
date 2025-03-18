@@ -21,7 +21,7 @@ const SwimmingPlace =  (props: SwimmingPlaceProps) => {
   const placeId = props.placeId
 
   const HandleSave = async (comment: string) => {
-    console.log(comment)
+    console.log(comment, placeId)
     const token = await AsyncStorage.getItem('jwt');
     const user = await getCurrentUser(); 
     if (!token || !user) {
@@ -39,6 +39,7 @@ const SwimmingPlace =  (props: SwimmingPlaceProps) => {
          body: JSON.stringify({
           placeId: placeId,
            userId: user.userId,
+           userName: user.userName,
            comment: comment,
   
          }),
@@ -74,9 +75,9 @@ const SwimmingPlace =  (props: SwimmingPlaceProps) => {
 
   return (
     <View>
-      <Text>Kirjoita halutessasi kommentti paikasta</Text>
+      <Text>Kirjoita halutessasi kommentti paikasta {placeId}</Text>
       <TextInput
-          placeholder='Kommentti'
+          placeholder='Kommentti' 
           value={placeComment}
           onChangeText={(text) => setPlaceComment(text)}
       />

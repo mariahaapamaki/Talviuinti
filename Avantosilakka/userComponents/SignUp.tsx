@@ -21,7 +21,7 @@ type SignUpScreenRouteProp = RouteProp<RootStackParamList, 'SignUp'>;
 
 interface SignUpProps {
   navigation: SignUpScreenNavigationProp;
-  route: SignUpScreenRouteProp;
+  //route: SignUpScreenRouteProp;
 }
 
 const SignUp = (props: SignUpProps) => {

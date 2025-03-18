@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-//const PublicPlace = require('./models/PublicPlace');
+const PublicPlace = require('../models/swimmingPlace');
 const Comment = require('../models/comment');
 
 router.get(`/`, async (req, res) => {
@@ -13,27 +13,31 @@ router.get(`/`, async (req, res) => {
 });
 
 router.get('/:placeId', async (req, res) => {
-    const { placeId } = req.params;
-  
-    try {
-      const commentList = await UserPlace.find({ placeId: placeId });
-  
-      if (!commentList) {
-        return res.status(404).json({ success: false, message: 'No places found for this user.' });
-      }
-  
-      res.status(200).json(commentList);
-    } catch (error) {
-      console.error('Error fetching commentlist:', error);
-      res.status(500).json({ success: false, message: 'An error occurred while fetching comment places.' });
+  const { placeId } = req.params;
+  console.log(`Fetching comments for placeId: ${placeId}`); // Add logging
+
+  try {
+    const commentList = await Comment.find({ placeId: placeId }); // Corrected model
+    console.log(`Comments found: ${commentList.length}`); // Add logging
+
+    if (!commentList || commentList.length === 0) {
+      return res.status(200).json({ success: true, message: 'No comments found for this place.', comments: [] });
     }
-  });
+
+    res.status(200).json(commentList);
+  } catch (error) {
+    console.error('Error fetching comment list:', error);
+    res.status(500).json({ success: false, message: 'An error occurred while fetching comments.' });
+  }
+});
 
 router.post('/', (req, res) => {
+  console.log(req.body.placeId)
  const newComment = new Comment({
         placeId: req.body.placeId,
         comment: req.body.comment,
         userId: req.body.userId,
+        userName: req.body.userName,
         date: new Date().toString(),
       });
   newComment.save()

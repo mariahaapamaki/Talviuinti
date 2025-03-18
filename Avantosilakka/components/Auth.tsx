@@ -3,7 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AuthReducer from '../reducers/Auth.reducer';
-import { setCurrentUser } from '../context/Auth.actions';
+import { loginUser, setCurrentUser } from '../context/Auth.actions';
 import AuthGlobal from './AuthGlobal';
 
 export interface DecodedToken {
@@ -12,6 +12,8 @@ export interface DecodedToken {
   userId: string;
   userName: string;
   isAdmin: boolean;
+  firstName: string;
+  lastName: string;
 }
 
 const Auth = (props: any) => {
@@ -43,7 +45,7 @@ const Auth = (props: any) => {
           if (userWithId) {
             dispatch(setCurrentUser(decoded, userWithId));
           } else {
-            dispatch(setCurrentUser(decoded, { userName: decoded.userName, password: '', userId: decoded.userId }));
+            dispatch(setCurrentUser(decoded, { userName: decoded.userName, password: '', userId: decoded.userId, firstName: decoded.firstName, lastName: decoded.lastName }));
           }
         }
       } catch (error) {

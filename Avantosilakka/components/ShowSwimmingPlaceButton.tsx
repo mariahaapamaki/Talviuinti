@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Modal, StyleSheet, Button } from 'react-native';
 import { Checkbox } from 'react-native-paper';
 
 interface GetButtonProps {
@@ -25,9 +25,9 @@ const GetButton = ({ onCheckboxChange }: GetButtonProps) => {
 
   return (
     <View>
-      <Pressable style={styles.button} onPress={() => setShowModal(true)}>
-        <Text style={styles.buttonText}>Asetukset</Text>
-      </Pressable>
+      <View style={styles.buttonT}>
+        <Button title="Asetukset" onPress={() => setShowModal(true)} />
+      </View>
       <Modal
         visible={showModal}
         onRequestClose={() => setShowModal(false)}
@@ -35,23 +35,21 @@ const GetButton = ({ onCheckboxChange }: GetButtonProps) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalView}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.checkboxContainer}>
               <Checkbox
                 status={ownPlace ? 'checked' : 'unchecked'}
                 onPress={() => handlePress('checkbox1')}
               />
-              <Text>Omat paikat </Text>
+              <Text style={styles.checkboxLabel}>Omat paikat</Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.checkboxContainer}>
               <Checkbox
                 status={allPlace ? 'checked' : 'unchecked'}
                 onPress={() => handlePress('checkbox2')}
               />
-              <Text>Kaikki paikat</Text>
+              <Text style={styles.checkboxLabel}>Yleiset uintipaikat</Text>
             </View>
-            <Pressable style={styles.button} onPress={() => setShowModal(false)}>
-              <Text>Close Modal</Text>
-            </Pressable>
+            <Button title="Sulje" onPress={() => setShowModal(false)} />
           </View>
         </View>
       </Modal>
@@ -60,6 +58,17 @@ const GetButton = ({ onCheckboxChange }: GetButtonProps) => {
 };
 
 const styles = StyleSheet.create({
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    justifyContent: 'flex-start', // Align items to the start
+    width: '100%', // Ensure the container takes full width
+    paddingHorizontal: 20, // Add padding to align with other elements
+  },
+  checkboxLabel: {
+    marginLeft: 8, // Add margin to the left of the label to align with the checkbox
+  },
   button: {
     backgroundColor: '#d9ffb3', // Light grey background color
     paddingVertical: 10,
@@ -75,10 +84,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  buttonText: {
-    color: '#333', // Dark grey text color
-    fontSize: 16,
-    fontWeight: '500'
+  buttonT: {
+    marginTop: 10,
   },
   modalContainer: {
     flex: 1,
@@ -91,6 +98,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
+    width: '80%', // Ensure the modal view takes a specific width
   },
 });
 

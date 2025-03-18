@@ -13,6 +13,26 @@ router.get(`/`, async (req, res) => {
     res.send(userList)
 })
 
+router.post(`/signup`, (req, res) => {
+    const user = new User({
+        userName: req.body.userName,
+        passwordHash: bcrypt.hashSync(req.body.password, 10),
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        lastLogin: req.body.lastLogin,
+        isAdmin: req.body.isAdmin
+    })
+    user.save().then((createdUser=> {
+        res.status(201).json(createdUser)
+    })).catch((err) => {
+        res.status(500).json({
+            error:err,
+            success: false
+        })
+    })
+})
+module.exports = router
+
 // single user
 router.get(`/:id`, async (req, res) => {
     const user = await User.findById(req.params.id)
@@ -34,7 +54,9 @@ router.post(`/login`, async (req, res) => {
         const token = jwt.sign({
             userId: user.id,
             userName: user.userName,
-            isAdmin: user.isAdmin
+            isAdmin: user.isAdmin,
+            firstName: user.firstName,
+            lastName: user.lastName
         },
         secret,
         {expiresIn: '1d'}

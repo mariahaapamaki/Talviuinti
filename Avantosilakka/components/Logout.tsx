@@ -1,41 +1,40 @@
 import React, { useEffect } from 'react';
-import { useNavigation, CommonActions } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text } from 'react-native';
+import { CommonActions, NavigationProp } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { logoutUser } from '../context/Auth.actions';
+import { RootStackParamList } from '../navigators/Main';
 
-
-const simpleLogout = async () => {
-  try {
-    await AsyncStorage.removeItem('jwt');
-    await AsyncStorage.removeItem('user');
- 
-    console.log('User logged out successfully');
-  } catch (error) {
-    console.error('Error logging out:', error);
-  }
-};
-
-const Logout = () => {
-  const navigation = useNavigation();
+const Logout = ({ navigation, handleLogout }: { navigation: NavigationProp<RootStackParamList>, handleLogout: () => void }) => {
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const logoutAndNavigate = async () => {
-      await simpleLogout();
-      // Resetting the navigator state and navigating to the Login screen
+    const performLogout = async () => {
+      await logoutUser(dispatch);
+      handleLogout(); // Call the handleLogout function to update the state
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
-          routes: [{ name: 'Käyttäjätiedot', params: { screen: 'Login' } }],
+          routes: [{ name: 'Käyttäjätiedot' }],
         })
       );
     };
 
-    logoutAndNavigate();
-  }, [navigation]);
+    performLogout();
+  }, []); // Empty dependency array ensures this runs only once
 
-  return null;
+  return (
+    <View>
+      <Text>Logging out...</Text>
+    </View>
+  );
 };
 
 export default Logout;
+
+
+
+
 
 
 

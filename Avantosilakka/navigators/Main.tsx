@@ -1,101 +1,91 @@
-import React, {useState, useEffect} from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import HomeNavigator from './HomeNavigator';
-import UserNavigator from './UserNavigator';
-import Logout from '../components/Logout';
-import Login from '../userComponents/Login';
-import { getCurrentUser } from '../context/Auth.actions';
-import Location from '../components/Location'
+import React, { useContext, useEffect, useState } from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Icon from "react-native-vector-icons/FontAwesome";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type RootStackParamList = {
-  Käyttäjätiedot: undefined;
-  Uintipaikka: undefined;
-  Logout: undefined;
-  Login: undefined;
-}
+// Stacks
+import Location from "../components/Location";
+import UserNavigator from "./UserNavigator";
+import AuthGlobal from "../components/AuthGlobal";
+import Toast from 'react-native-toast-message';
 
-const Tab = createBottomTabNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator();
 
-interface MainProps {
-  isLoggedIn: boolean;
-  handleLogin: () => void;
-}
-
-const Main: React.FC<MainProps> = ({ isLoggedIn, handleLogin }) => {
-  const [isId, setIsId] = useState(false);
-
-  const checkId = async () => {
-      const currentUser = await getCurrentUser();
-      return currentUser && currentUser.userId ? true : false;
-  };
+const Main = () => {
+  const context = useContext(AuthGlobal);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-      const initializeId = async () => {
-          const id = await checkId();
-          setIsId(id);
-      };
+    const checkAuthState = async () => {
+      try {
+        const authState = await AsyncStorage.getItem('isAuthenticated');
+        if (authState !== null) {
+          setIsAuthenticated(JSON.parse(authState));
+        }
+      } catch (error) {
+          Toast.show({
+            type: 'error',
+            text1: 'Virhe',
+            });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkAuthState();
+  }, []); 
 
-      initializeId();
-  }, []);
-  console.log(isId);
+ useEffect(() => {
+    if (context.stateUser.isAuthenticate !== null) {
+      setIsAuthenticated(context.stateUser.isAuthenticate);
+      AsyncStorage.setItem('isAuthenticated', JSON.stringify(context.stateUser.isAuthenticate));
+      console.log('Updated auth state:', context.stateUser.isAuthenticate);
+    }
+  }, [context.stateUser.isAuthenticate]); 
+
+  if (isLoading) {
+    return null; // or a loading spinner
+  }
+
   return (
-    <Tab.Navigator
-      initialRouteName={isId ? 'Uintipaikka' : 'Käyttäjätiedot'}
-      screenOptions={({ route }) => ({
-        tabBarHideOnKeyboard: true,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: '#e9e63',
-        tabBarInactiveTintColor: 'gray',
-        tabBarStyle: {
-          display: route.name === 'Login' ? 'none' : 'flex',
-        },
-      })}
-    >
+<Tab.Navigator
+  initialRouteName={isAuthenticated ? "Uintipaikat" : "User"}
+  screenOptions={{
+    tabBarHideOnKeyboard: true,
+    tabBarShowLabel: false,
+    tabBarActiveTintColor: "blue",
+    headerStyle: {
+      backgroundColor: "skyblue", // Green background for the header
+      height: 40,
+    },
+    headerTitleStyle: {
+      color: "#fff", // White color for the title text
+      fontSize: 16,
+      paddingLeft: 80, // This aligns the tex
+    },
+    headerTintColor: "#fff", // White color for back icons and buttons
+  
+  }}
+>
+  {isAuthenticated ? (
+    <Tab.Screen
+      name="Uintipaikat"
+      component={Location}
+      options={{
+        tabBarIcon: ({ color }) => (
+          <Icon name="home" color={color} size={30} />
+        ),
+        headerTitle: "Uintipaikat", // Custom title
+      }}
+    />
+  ) : null}
       <Tab.Screen
         name="Käyttäjätiedot"
+        component={UserNavigator}
         options={{
           tabBarIcon: ({ color }) => (
-            <Icon name="user" style={{ position: 'relative' }} color={color} size={30} />
+            <Icon name="user" color={color} size={30} />
           ),
-          headerShown: false,
-        }}
-      >
-        {() => <UserNavigator onLogin={handleLogin} />}
-      </Tab.Screen>
-      {isId ? (
-      <Tab.Screen
-        name="Uintipaikka"
-        component = {Location}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Icon name="map" style={{ position: 'relative' }} color={color} size={30} />
-          ),
-          headerShown: false,
-        }}
-      >
-      </Tab.Screen>)
-      :
-      (      <Tab.Screen
-        name="Login"
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Icon name="user" style={{ position: 'relative' }} color={color} size={30} />
-          ),
-          headerShown: false,
-        }}
-      >
-        {() => <UserNavigator onLogin={handleLogin} />}
-      </Tab.Screen>)}
-      <Tab.Screen
-        name="Logout"
-        component={Logout}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Icon name="sign-out" style={{ position: 'relative' }} color={color} size={30} />
-          ),
-          headerShown: false,
         }}
       />
     </Tab.Navigator>
@@ -103,18 +93,6 @@ const Main: React.FC<MainProps> = ({ isLoggedIn, handleLogin }) => {
 };
 
 export default Main;
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
