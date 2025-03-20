@@ -3,14 +3,14 @@ import { Text, View, StyleSheet, Modal, TextInput, Pressable, Alert, Button} fro
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import SavePlaceButton from './SavePlaceButton';
-import GetButton from './ShowSwimmingPlaceButton';
-import { getAllSwimmingPlaces } from './api';
+import GetButton from './LocationScreenSettings';
 import { Image } from 'expo-image';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import { getBaseUrl } from '../components/api';
+import { getBaseUrl } from '../services/api';
 import { getCurrentUser } from "../context/Auth.actions";
 import axios from 'axios';
+import { saveComment } from '../services/swimmingplace';
 
 interface SwimmingPlaceProps {
   placeId: string | number | undefined;
@@ -20,68 +20,35 @@ const SwimmingPlace =  (props: SwimmingPlaceProps) => {
   const [placeComment, setPlaceComment] = useState('')
   const placeId = props.placeId
 
-  const HandleSave = async (comment: string) => {
-    console.log(comment, placeId)
-    const token = await AsyncStorage.getItem('jwt');
-    const user = await getCurrentUser(); 
-    if (!token || !user) {
-      console.log('No token or user found');
-      return;
-    }
-    
+  const handleSave = async (comment) => {
     try {
-       const response = await fetch(`${getBaseUrl()}comments`, {
-         method: 'POST',
-         headers: {
-           'Authorization': `Bearer ${token}`,
-           'Content-Type': 'application/json',
-         },
-         body: JSON.stringify({
-          placeId: placeId,
-           userId: user.userId,
-           userName: user.userName,
-           comment: comment,
-  
-         }),
-       });
-       console.log(JSON.stringify({
-        placeId: placeId,
-         userId: user.userName,
-         comment: comment,
-
-       }))
-       if (response.status === 200 || response.status === 201) {
-         const data = await response.json();
-         Toast.show({
-           type: 'success',
-           text1: 'Comment saved successfully!',
-         });
-         return data;
-       } else {
-         Toast.show({
-           type: 'error',
-           text1: 'Failed to save comment.',
-         });
-       }
-     } catch (error) {
-       Toast.show({
-         type: 'error',
-         text1: 'Error saving comment.',
-       });
-     }
-    };
+      const savedComment = await saveComment(comment, placeId);
+      Toast.show({
+        type: 'success',
+        text1: 'Comment saved successfully!',
+      });
+      console.log('Saved comment:', savedComment);
+      return savedComment;
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to save comment.',
+      });
+      console.error('Error:', error);
+    }
+  };
   
 
 
   return (
     <View>
-      <Text>Kirjoita halutessasi kommentti paikasta {placeId}</Text>
+      <Text>Kirjoita halutessasi kommentti paikasta </Text>
       <TextInput
           placeholder='Kommentti' 
           value={placeComment}
           onChangeText={(text) => setPlaceComment(text)}
       />
-      <Button title="Tallenna kommentti" onPress={() => HandleSave(placeComment)}></Button>
+      <Button title="Tallenna kommentti" onPress={() => handleSave(placeComment)}></Button>
       <Toast/>
     </View>
   );

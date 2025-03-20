@@ -7,7 +7,7 @@ import { RouteProp } from '@react-navigation/native';
 import Error from '../shared/Error';
 import { Image } from 'expo-image';
 import axios from 'axios';
-import { getBaseUrl } from '../components/api';
+import { getBaseUrl } from '../services/api';
 import Toast from 'react-native-toast-message'
 
 type RootStackParamList = {

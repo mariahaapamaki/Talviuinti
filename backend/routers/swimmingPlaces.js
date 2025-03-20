@@ -17,7 +17,7 @@ router.post(`/`, (req, res) => {
     longitude: req.body.longitude,
     userId: req.body.userId,
     date: new Date().toString(),
-    isPublic: req.body.isPublic,
+    isPublic: true,
     publicInfo: req.body.publicInfo,
     name: req.body.name,
     comment: req.body.comment

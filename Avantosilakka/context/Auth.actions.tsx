@@ -1,7 +1,7 @@
 import { jwtDecode } from 'jwt-decode'; // Ensure correct import
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import { getBaseUrl } from '../components/api';
+import { getBaseUrl } from '../services/api';
 
 export const SET_CURRENT_USER = "SET_CURRENT_USER";
 

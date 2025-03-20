@@ -34,6 +34,7 @@ router.post(`/`, async (req, res) => {
         longitude: req.body.longitude,
         userId: req.body.userId,
         date: new Date().toString(),
+        isPublic: false,
         info: req.body.info
     });
 

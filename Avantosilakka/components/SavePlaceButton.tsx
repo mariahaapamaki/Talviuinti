@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { View, Button, StyleSheet, Alert, Modal, Text, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import { getBaseUrl } from '../components/api';
+import { getBaseUrl } from '../services/api';
 import { getCurrentUser } from "../context/Auth.actions";
 import { Checkbox, TextInput } from 'react-native-paper';
 import axios from 'axios';
 import geolib from 'geolib';
 import { getDistance } from 'geolib';
+import { saveUserPlace, savePublicPlace } from '../services/swimmingplace';
 
 interface SavePlaceButtonProps {
   placeData: {
@@ -30,90 +31,6 @@ interface Existing {
 }
 
 
-const saveUserPlace2 = async (placeData: any) => {
-  const token = await AsyncStorage.getItem('jwt');
-  const user = await getCurrentUser(); 
-
-  if (!token || !user) {
-    console.error('No token or user found');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${getBaseUrl()}userPlaces`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...placeData,
-        userId: user.userId, // Ensure userId is being set correctly
-      }),
-    });
-
-    if (response.status === 200 || response.status === 201) {
-      const data = await response.json();
-      Toast.show({
-        type: 'success',
-        text1: 'Place saved successfully!',
-      });
-      return data;
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to save place.',
-      });
-    }
-  } catch (error) {
-    Toast.show({
-      type: 'error',
-      text1: 'Error saving place.',
-    });
-  }
-};
-
-const savePublicPlace = async (placeData: any) => {
-  const token = await AsyncStorage.getItem('jwt');
-  const user = await getCurrentUser();
-
-  if (!token || !user) {
-    console.error('No token or user found');
-    return;
-  }
-
-  try {
-    const response = await axios.post(`${getBaseUrl()}publicPlaces`, {
-      ...placeData,
-      userId: user.userId,
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-console.log(placeData)
-    if (response.status === 200 || response.status === 201) {
-      Toast.show({
-        type: 'success',
-        text1: 'Public place saved successfully!',
-      });
-      return response.data;
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to save public place.',
-      });
-    }
-  } catch (error) {
-    console.error('Error saving public place:', error);
-    Toast.show({
-      type: 'error',
-      text1: 'Error saving public place.',
-    });
-  }
-};
-
 const SavePlaceButton = (props) => {
   const [showModal, setShowModal] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
@@ -122,7 +39,7 @@ const SavePlaceButton = (props) => {
   const [publicName, setPublicName] = useState('');
 
   const placeData: Place = props.placeData
-  const existingPublicPlaces: Existing[] = props.existingPublicPlaces
+  const existingPublicPlaces: Existing[] = props.existingPublicPlaces.filter(x => x.isPublic)
 
 
   const handleSave = async () => {
@@ -133,27 +50,21 @@ const SavePlaceButton = (props) => {
       publicInfo: publicInfo,
       name: publicName,
     };
-
+  
     if (isPublic) {
-      const test = existingPublicPlaces !== undefined ? existingPublicPlaces : [];
-      const isDuplicate = test.some((existingPlace) => {
-        console.log('existingPlace', existingPlace.latitude, existingPlace.longitude);
-        console.log('placeData', placeData.latitude, placeData.longitude);
-    
+      const isDuplicate = existingPublicPlaces.some((existingPlace) => {
         try {
           const distance = getDistance(
             { latitude: placeData.latitude, longitude: placeData.longitude },
             { latitude: existingPlace.latitude, longitude: existingPlace.longitude }
           );
-          console.log('distance', distance);
-    
           return distance < 50;
         } catch (error) {
           console.error('Error calculating distance:', error);
-          return false; // Skip this iteration if an error occurs
+          return false;
         }
       });
-
+  
       if (isDuplicate) {
         Alert.alert(
           'Virhe',
@@ -162,9 +73,9 @@ const SavePlaceButton = (props) => {
         return;
       }
     }
-
+  
     try {
-      const result = await saveUserPlace2(updatedPlaceData);
+      const result = await saveUserPlace(updatedPlaceData);
       if (result) {
         if (isPublic) {
           const publicResult = await savePublicPlace(updatedPlaceData);
@@ -185,6 +96,7 @@ const SavePlaceButton = (props) => {
       Alert.alert('Error', 'Failed to save place.');
     }
   };
+  
 
   const handlePress = () => {
     const newChecked = !isPublic;

@@ -6,7 +6,7 @@ interface GetButtonProps {
   onCheckboxChange: (name: string, value: boolean) => void;
 }
 
-const GetButton = ({ onCheckboxChange }: GetButtonProps) => {
+const Settings = ({ onCheckboxChange }: GetButtonProps) => {
   const [ownPlace, setOwnPlace] = useState(true);
   const [allPlace, setAllPlace] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -102,6 +102,6 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GetButton;
+export default Settings;
 
 

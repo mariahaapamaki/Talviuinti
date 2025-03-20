@@ -39,12 +39,11 @@ const Main = () => {
     if (context.stateUser.isAuthenticate !== null) {
       setIsAuthenticated(context.stateUser.isAuthenticate);
       AsyncStorage.setItem('isAuthenticated', JSON.stringify(context.stateUser.isAuthenticate));
-      console.log('Updated auth state:', context.stateUser.isAuthenticate);
     }
   }, [context.stateUser.isAuthenticate]); 
 
   if (isLoading) {
-    return null; // or a loading spinner
+    return null;
   }
 
   return (

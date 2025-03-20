@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Text, View, StyleSheet, Modal, Button } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import SavePlaceButton from './SavePlaceButton';
-import GetButton from './ShowSwimmingPlaceButton';
+import Settings from './LocationScreenSettings';
 import axios from 'axios';
-import { getBaseUrl } from '../components/api';
+import { fetchPublicSwimmingPlaces, fetchUserSwimmingPlaces, fetchComments } from '../services/swimmingplace';
+import { getBaseUrl } from '../services/api';
 import { getCurrentUser } from "../context/Auth.actions";
 import SwimmingPlace from './SwimmingPlace';
+import Toast from 'react-native-toast-message';
+
 
 export default function ShowLocation() {
   interface Place {
@@ -32,14 +35,6 @@ export default function ShowLocation() {
     date: string
   }
 
-  interface SavePlaceButtonProps {
-    placeData: {
-      name: string;
-      latitude: number;
-      longitude: number;
-    };
-  }
-
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
@@ -53,13 +48,17 @@ export default function ShowLocation() {
   });
 
   useEffect(() => {
+    // Kysytään tarvittaessa lupa sijainnin käyttöön
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
+            Toast.show({
+              type: 'error',
+              text1: 'Lupaa sijaintitietojen käyttöön ei myönnetty',
+            });
         return;
       }
-
+    // Haetaan käyttäjän nykyiset sijaintitiedot
       const currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
       setMapRegion({
@@ -68,7 +67,7 @@ export default function ShowLocation() {
         latitudeDelta: 0.005,
         longitudeDelta: 0.005,
       });
-
+      // Seurataan käyttäjän sijaintia
       Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
@@ -86,34 +85,39 @@ export default function ShowLocation() {
     fetchSwimmingPlaces();
   }, [checkboxValues]);
 
+  // Haetaan kaikki tallennetut (sekä käyttäjän yksityiset että yleiset) uintipaikat palvelimelta
   const fetchSwimmingPlaces = async () => {
     try {
       const user = await getCurrentUser();
       if (!user || !user.userId) {
-        console.log('User is not logged in');
+        Toast.show({
+          type: 'error',
+          text1: 'Käyttäjätietoja ei löydy',
+        });
         return;
       }
-
-      const [userPlacesResponse, publicPlacesResponse] = await Promise.all([
-        axios.get(`${getBaseUrl()}userPlaces/${user.userId}`),
-        axios.get(`${getBaseUrl()}publicPlaces`)
+  
+      const [userPlaces, publicPlaces] = await Promise.all([
+        fetchUserSwimmingPlaces(user.userId),
+        fetchPublicSwimmingPlaces()
       ]);
-
+  
       let places: Place[] = [];
       if (checkboxValues.checkbox1 && checkboxValues.checkbox2) {
-        places = [...userPlacesResponse.data, ...publicPlacesResponse.data];
+        places = [...userPlaces, ...publicPlaces];
       } else if (checkboxValues.checkbox1) {
-        places = userPlacesResponse.data;
+        places = userPlaces;
       } else if (checkboxValues.checkbox2) {
-        places = publicPlacesResponse.data;
+        places = publicPlaces;
       }
-
+  
       setSwimmingPlaces(places);
     } catch (error) {
-      console.error('Error fetching swimming places:', error);
+      console.error('Virhe:', error);
     }
   };
 
+  // Käsitellään lapsikomponentista tuleva checkbox-muutos
   const handleCheckboxChange = (name: string, value: boolean) => {
     setCheckboxValues((prevValues) => ({
       ...prevValues,
@@ -121,38 +125,26 @@ export default function ShowLocation() {
     }));
   };
 
-  const getComments = async (placeId: string) => {
+  // Haetaan valitun yleisen uintipaikan kommentit palvelimelta
+  const getComments = async (placeId) => {
     try {
-      console.log(`Fetching comments for placeId: ${placeId}`); 
-      const response = await axios.get(`${getBaseUrl()}comments/${placeId}`);
-      if (response.status === 200 || response.status === 201) {
-        console.log('Response data:', response.data);
-
-        const commentList = response.data !== null || response.data.length > 0 ? response.data : []
-        // Sort comments by date in descending order
-        if (commentList.length > 0) {
-        commentList.sort((a: Comment, b: Comment) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        }
-        setCommentList(commentList); 
-      } else {
-        console.error('Unexpected response status:', response.status);
-        setCommentList([]);
-      }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-      setCommentList([]); 
+      const comments = await fetchComments(placeId);
+      const sortedComments = comments.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setCommentList(sortedComments);
+    } catch {
+      setCommentList([]);
     }
   };
-
+  // Määritellään paikkatiedot jotka välitetään propsina
   const placeData = {
-    name: 'My Place',
     latitude: location?.coords.latitude ?? 0,
     longitude: location?.coords.longitude ?? 0,
   };
-
+  // Uuden uintipaikan tallennuksen jälkeen päivitetään uintipaikat
   const handleSavePlace = async () => {
-    // Save place logic here
-    await fetchSwimmingPlaces(); // Fetch swimming places after saving
+    await fetchSwimmingPlaces();
   };
 
   return (
@@ -173,24 +165,29 @@ export default function ShowLocation() {
               pinColor="red"
             />
           )}
-          {swimmingPlaces.length > 0 &&
-            swimmingPlaces.map((place) => (
-              <Marker
-                key={place._id}
-                coordinate={{
-                  latitude: place.latitude,
-                  longitude: place.longitude,
-                }}
-                pinColor={place.isPublic ? "green" : "blue"}
-                onPress={() => {
-                  if (place.isPublic) {
-                    setSelectedPlace(place);
-                    getComments(place._id);
-                    setShowModal(true);
-                  }
-                }}
-              />
-            ))}
+   {swimmingPlaces.map((place) => {
+    // Define pinColor within the loop
+    const pinColor = place.isPublic ? "green" : "blue";
+
+    return (
+      <Marker
+        key={place._id}
+        coordinate={{
+          latitude: place.latitude,
+          longitude: place.longitude,
+        }}
+        pinColor={pinColor} // Use the dynamically assigned pinColor
+        onPress={() => {
+          if (place.isPublic) {
+            setSelectedPlace(place);
+            getComments(place._id);
+            setShowModal(true);
+          }
+        }}
+        tracksViewChanges={false} // Prevent unnecessary re-renders
+      />
+    );
+  })}
         </MapView>
       )}
       <Modal
@@ -229,12 +226,12 @@ export default function ShowLocation() {
         </View>
       </Modal>
       <SavePlaceButton
-  placeData={placeData} // Prop for place-specific data
-  existingPublicPlaces={swimmingPlaces} // Prop for existing swimming places
-  onSave={handleSavePlace} // Prop for a callback function
+  placeData={placeData}
+  existingPublicPlaces={swimmingPlaces}
+  onSave={handleSavePlace} 
 />
 
-      <GetButton onCheckboxChange={handleCheckboxChange} />
+      <Settings onCheckboxChange={handleCheckboxChange} />
     </View>
   );
 }

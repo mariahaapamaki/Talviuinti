@@ -18,12 +18,3 @@ export const saveUserPlace = async (placeData) => {
   }
 };
 
-export const getAllSwimmingPlaces = async () => {
-  try {
-    const response = await axios.get(API_URL_GET_SWIMMINGPLACES);
-    return response.data;
-  } catch (error) {
-    console.error('Error saving user place:', error);
-    throw error;
-  }
-};

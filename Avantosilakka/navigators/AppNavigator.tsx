@@ -7,7 +7,7 @@ import Main from './Main';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
- /* const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -28,11 +28,11 @@ const AppNavigator = () => {
   }, []);
 
   if (isLoading) {
-    return null; 
-  } */
+    return null; // or a loading spinner
+  }
 
   return (
-    <Stack.Navigator >
+    <Stack.Navigator initialRouteName={isAuthenticated ? "Main" : "Login"}>
       <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
       <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
     </Stack.Navigator>
