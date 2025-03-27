@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, StyleSheet, Button } from 'react-native';
+import { View, Text, Modal, StyleSheet, Button, TouchableOpacity } from 'react-native';
 import { Checkbox } from 'react-native-paper';
 
 interface GetButtonProps {
@@ -21,13 +21,16 @@ const Settings = ({ onCheckboxChange }: GetButtonProps) => {
       setAllPlace(newChecked);
       onCheckboxChange(name, newChecked);
     }
-  };
+  };  
 
   return (
     <View>
-      <View style={styles.buttonT}>
-        <Button title="Asetukset" onPress={() => setShowModal(true)} />
-      </View>
+      <TouchableOpacity
+         style={ styles.actionButton}
+         onPress={() => setShowModal(true)}
+      >
+        <Text style={styles.actionButtonText}>Asetukset</Text>
+    </TouchableOpacity>
       <Modal
         visible={showModal}
         onRequestClose={() => setShowModal(false)}
@@ -35,6 +38,7 @@ const Settings = ({ onCheckboxChange }: GetButtonProps) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalView}>
+            <Text style={styles.checkboxContainer}>Valitse kartalla näytettävät </Text>
             <View style={styles.checkboxContainer}>
               <Checkbox
                 status={ownPlace ? 'checked' : 'unchecked'}
@@ -58,6 +62,18 @@ const Settings = ({ onCheckboxChange }: GetButtonProps) => {
 };
 
 const styles = StyleSheet.create({
+  actionButton: {
+    margin: 10,
+    padding: 15,
+    backgroundColor: '#007BFF',
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',

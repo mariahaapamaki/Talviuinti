@@ -15,6 +15,7 @@ interface DecodedToken {
   iat: number;
 }
 
+
 export const loginUser = async (user: { userName: string; password: string }, dispatch: any): Promise<boolean> => {
   try {
     const response = await fetch(`${getBaseUrl()}users/login`, {

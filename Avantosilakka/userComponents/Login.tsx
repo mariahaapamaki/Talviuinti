@@ -6,6 +6,7 @@ import { RouteProp, CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import Error from '../shared/Error';
+import { sanitizeInput } from '../shared/Sanitize';
 
 
 import AuthGlobal from '../components/AuthGlobal';
@@ -19,11 +20,9 @@ type RootStackParamList = {
 };
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
-type LoginScreenRouteProp = RouteProp<RootStackParamList, 'Login'>;
 
 interface LoginProps {
   navigation: LoginScreenNavigationProp;
-  //route: LoginScreenRouteProp;
 }
 
 const Login = (props: LoginProps) => {
@@ -64,13 +63,13 @@ const Login = (props: LoginProps) => {
         style={[{ marginTop: 40 }, styles.input]}
         placeholder="Kirjoita käyttäjänimi"
         value={userName}
-        onChangeText={(text) => setUserName(text.toLowerCase())}
+        onChangeText={(text) => setUserName(sanitizeInput(text.toLowerCase()))}
       />
       <TextInput
         style={styles.input}
         placeholder="Kirjoita salasana"
         value={password}
-        onChangeText={(text) => setPassword(text)}
+        onChangeText={(text) => setPassword(sanitizeInput(text))}
         secureTextEntry={true}
       />
       <View>

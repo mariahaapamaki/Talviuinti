@@ -60,7 +60,7 @@ export const fetchComments = async (placeId) => {
     }
   };
   
-  // Fetch public swimming places
+
   export const fetchPublicSwimmingPlaces = async () => {
     try {
       const response = await axios.get(`${getBaseUrl()}publicPlaces`);
@@ -71,7 +71,7 @@ export const fetchComments = async (placeId) => {
     }
   };
 
-  // Function to save user places
+
 export const saveUserPlace = async (placeData) => {
     const token = await AsyncStorage.getItem('jwt');
     const user = await getCurrentUser();

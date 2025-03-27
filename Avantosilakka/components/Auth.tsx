@@ -2,9 +2,10 @@ import React, { useReducer, useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import AuthReducer from '../reducers/Auth.reducer';
+//import AuthReducer from '../reducers/Auth.reducer';
 import { loginUser, setCurrentUser } from '../context/Auth.actions';
 import AuthGlobal from './AuthGlobal';
+import AuthReducer, { initialState } from '../reducers/Auth.reducer';
 
 export interface DecodedToken {
   exp: any,
@@ -16,11 +17,19 @@ export interface DecodedToken {
   lastName: string;
 }
 
+interface Action {
+  type: string;
+  payload?: any;
+  userProfile?: any;
+}
+
 const Auth = (props: any) => {
-  const [stateUser, dispatch] = useReducer(AuthReducer, {
-    isAuthenticate: null,
+  const [stateUser, dispatch] = useReducer<typeof AuthReducer>(AuthReducer, {
+    isAuthenticate: initialState.isAuthenticate,
     user: {},
+    userProfile: null,
   });
+  
   const [showChild, setShowChild] = useState(false);
 
   useEffect(() => {
@@ -30,18 +39,10 @@ const Auth = (props: any) => {
         const token = await AsyncStorage.getItem('jwt');
         if (token) {
           const decoded: DecodedToken = jwtDecode(token) as DecodedToken;
-          console.log("Decoded token during load:", decoded);
-
-          // Retrieve the user object
           const userString = await AsyncStorage.getItem('user');
           const user = userString ? JSON.parse(userString) : null;
-          console.log("User during load:", user);
-
-          // Ensure user object includes userId
           const userWithId = user ? { ...user, userId: decoded.userId } : null;
-          console.log("User with ID during load:", userWithId);
 
-          // Pass both the decoded token and user object
           if (userWithId) {
             dispatch(setCurrentUser(decoded, userWithId));
           } else {
@@ -52,9 +53,7 @@ const Auth = (props: any) => {
         console.error("Error loading user:", error);
       }
     };
-
     loadUser();
-
     return () => setShowChild(false);
   }, []);
 

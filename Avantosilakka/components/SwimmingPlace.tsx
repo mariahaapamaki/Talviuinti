@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Modal, TextInput, Pressable, Alert, Button} from 'react-native';
+import { Text, View, StyleSheet, Modal, TextInput, Pressable, Alert, Button, TouchableOpacity} from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import SavePlaceButton from './SavePlaceButton';
@@ -11,6 +11,7 @@ import { getBaseUrl } from '../services/api';
 import { getCurrentUser } from "../context/Auth.actions";
 import axios from 'axios';
 import { saveComment } from '../services/swimmingplace';
+import { sanitizeInput } from '../shared/Sanitize';
 
 interface SwimmingPlaceProps {
   placeId: string | number | undefined;
@@ -41,17 +42,59 @@ const SwimmingPlace =  (props: SwimmingPlaceProps) => {
 
 
   return (
-    <View>
-      <Text>Kirjoita halutessasi kommentti paikasta </Text>
+    <View style={styles.container}>
+      <Text style={styles.label}>Kirjoita halutessasi kommentti paikasta</Text>
       <TextInput
-          placeholder='Kommentti' 
-          value={placeComment}
-          onChangeText={(text) => setPlaceComment(text)}
+        style={styles.commentInput}
+        placeholder='Kommentti'
+        placeholderTextColor="#888" // Subtle placeholder color
+        value={placeComment}
+        onChangeText={(text) => setPlaceComment(sanitizeInput(text))}
+        multiline={true} // Allow multiline input
+        numberOfLines={4} // Define visible rows
       />
-      <Button title="Tallenna kommentti" onPress={() => handleSave(placeComment)}></Button>
-      <Toast/>
+      <TouchableOpacity style={styles.saveButton} onPress={() => handleSave(placeComment)}>
+        <Text style={styles.saveButtonText}>Tallenna kommentti</Text>
+      </TouchableOpacity>
+      <Toast />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 10,
+    color: '#333',
+  },
+  commentInput: {
+    height: 100,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    textAlignVertical: 'top', // Aligns text to the top for multiline input
+    backgroundColor: '#f9f9f9',
+    fontSize: 14,
+    marginBottom: 20,
+    color: '#000',
+  },
+  saveButton: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+
 
 export default SwimmingPlace;

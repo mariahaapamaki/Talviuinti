@@ -54,15 +54,15 @@ const Main = () => {
     tabBarShowLabel: false,
     tabBarActiveTintColor: "blue",
     headerStyle: {
-      backgroundColor: "skyblue", // Green background for the header
+      backgroundColor: "skyblue",
       height: 40,
     },
     headerTitleStyle: {
-      color: "#fff", // White color for the title text
+      color: "#fff",
       fontSize: 16,
-      paddingLeft: 80, // This aligns the tex
+      paddingLeft: 80,
     },
-    headerTintColor: "#fff", // White color for back icons and buttons
+    headerTintColor: "#fff",
   
   }}
 >
@@ -74,7 +74,7 @@ const Main = () => {
         tabBarIcon: ({ color }) => (
           <Icon name="home" color={color} size={30} />
         ),
-        headerTitle: "Uintipaikat", // Custom title
+        headerTitle: "Uintipaikat",
       }}
     />
   ) : null}

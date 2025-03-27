@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Text, View, StyleSheet, Modal, Button } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, StyleSheet, Modal, Button, ScrollView } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import SavePlaceButton from './SavePlaceButton';
 import Settings from './LocationScreenSettings';
-import axios from 'axios';
 import { fetchPublicSwimmingPlaces, fetchUserSwimmingPlaces, fetchComments } from '../services/swimmingplace';
-import { getBaseUrl } from '../services/api';
 import { getCurrentUser } from "../context/Auth.actions";
 import SwimmingPlace from './SwimmingPlace';
 import Toast from 'react-native-toast-message';
@@ -36,7 +34,6 @@ export default function ShowLocation() {
   }
 
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [swimmingPlaces, setSwimmingPlaces] = useState<Place[]>([]);
@@ -166,7 +163,6 @@ export default function ShowLocation() {
             />
           )}
    {swimmingPlaces.map((place) => {
-    // Define pinColor within the loop
     const pinColor = place.isPublic ? "green" : "blue";
 
     return (
@@ -176,7 +172,7 @@ export default function ShowLocation() {
           latitude: place.latitude,
           longitude: place.longitude,
         }}
-        pinColor={pinColor} // Use the dynamically assigned pinColor
+        pinColor={pinColor}
         onPress={() => {
           if (place.isPublic) {
             setSelectedPlace(place);
@@ -184,7 +180,7 @@ export default function ShowLocation() {
             setShowModal(true);
           }
         }}
-        tracksViewChanges={false} // Prevent unnecessary re-renders
+        tracksViewChanges={false}
       />
     );
   })}
@@ -211,20 +207,24 @@ export default function ShowLocation() {
             onPress={() => setShowModal(false)}
           >
           </Button>
-          <View style={styles.modalView}>
-            <Text>Käyttäjien kommentit</Text>
+
+          <Text style={styles.header2}>Käyttäjien kommentit</Text>
+
+          <ScrollView style={styles.scrollContainer}>
+
             {commentList.length > 0
               ?  commentList.map((comment) => (
                 <View key={comment._id} style={styles.commentContainer}>
-                  <Text key={comment.comment}>{comment.comment}</Text>
-                  <Text key={comment.date} style={styles.commentText}>{comment.userName}</Text>
+                  <Text key={comment.comment} style={styles.commentText}>{comment.comment}</Text>
+                  <Text key={comment.date} style={styles.userText}>{comment.userName}</Text>
                   </View>
                 ))
               :               
               <Text>Ei kommentteja</Text>}
-          </View>
+          </ScrollView>
         </View>
       </Modal>
+      <View style={styles.buttonRow}>
       <SavePlaceButton
   placeData={placeData}
   existingPublicPlaces={swimmingPlaces}
@@ -232,15 +232,26 @@ export default function ShowLocation() {
 />
 
       <Settings onCheckboxChange={handleCheckboxChange} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  header2: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+   // textAlign: 'left', // Aligns text to the left
   },
   container: {
     flex: 1,
@@ -280,20 +291,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
   },
-  button: {
-    backgroundColor: '#d9ffb3', // Light grey background color
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc', // Subtle border color
+  actionButton: {
+    margin: 10,
+    padding: 15,
+    backgroundColor: '#007BFF',
+    borderRadius: 5,
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000', // Shadow for a modern look
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
   },
   buttonText: {
     color: '#333', // Dark grey text color
@@ -302,6 +305,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     margin: 20,
+    width: '90%',
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 35,
@@ -315,14 +319,33 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  scrollContainer: {
+    maxHeight: '60%', // Ensures the comment section doesn't overflow
+    width: '80%', // Takes full width of the modal
+    marginTop: 20,
+  },
   commentContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    paddingVertical: 10,
+    borderWidth: 1, // Add a border around each comment
+    borderColor: '#ccc', // Subtle border color
+    borderRadius: 8, // Rounded corners for a softer look
+    padding: 10, // Add padding inside the comment box
+    marginBottom: 10, // Space between comments
+    backgroundColor: '#f9f9f9', // Light background for contrast
+    shadowColor: '#000', // Optional shadow for a 3D effect
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 1, // For Android shadow effect
   },
   commentText: {
-    fontSize: 12,
-    fontStyle: 'italic',
+    fontSize: 16,
+    color: '#333', // Darker text color for better readability
+  },
+  userText: {
+    fontSize: 14,
+    color: '#777', // Lighter text color for user names
+    marginTop: 5, // Space between comment and user name
+    fontStyle: 'italic', // Italics for stylistic emphasis
   },
 });
 

@@ -9,6 +9,7 @@ import { Image } from 'expo-image';
 import axios from 'axios';
 import { getBaseUrl } from '../services/api';
 import Toast from 'react-native-toast-message'
+import { sanitizeInput } from '../shared/Sanitize';
 
 type RootStackParamList = {
   Login: undefined;
@@ -83,26 +84,26 @@ const SignUp = (props: SignUpProps) => {
         style={[{ marginTop: 40 }, styles.input]}
         placeholder="Käyttäjänimi"
         value={userName}
-        onChangeText={(text) => setUserName(text.toLowerCase())}
+        onChangeText={(text) => setUserName(sanitizeInput(text.toLowerCase()))}
       />
       <TextInput
         style={styles.input}
         placeholder="Salasana"
         value={password}
-        onChangeText={(text) => setPassword(text)}
+        onChangeText={(text) => setPassword(sanitizeInput(text))}
         secureTextEntry={true}
       />
       <TextInput
         style={styles.input}
         placeholder="Etunimi"
         value={firstName}
-        onChangeText={(text) => setFirstName(text)}
+        onChangeText={(text) => setFirstName(sanitizeInput(text))}
       />
       <TextInput
         style={styles.input}
         placeholder="Sukunimi"
         value={lastName}
-        onChangeText={(text) => setLastName(text)}
+        onChangeText={(text) => setLastName(sanitizeInput(text))}
       />
       <View>
         {error ? <Error message={error} /> : null}
