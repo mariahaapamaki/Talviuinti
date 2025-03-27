@@ -22,7 +22,6 @@ type SignUpScreenRouteProp = RouteProp<RootStackParamList, 'SignUp'>;
 
 interface SignUpProps {
   navigation: SignUpScreenNavigationProp;
-  //route: SignUpScreenRouteProp;
 }
 
 const SignUp = (props: SignUpProps) => {
@@ -73,12 +72,10 @@ const SignUp = (props: SignUpProps) => {
 
   return (
     <View
-      //viewIsInsideTabBar={true}
-      //extraHeight={200}
-     // enableOnAndroid={true}
+
       style={styles.container}
     >
-      <Image source={require('../components/download3.png')} style={styles.image} />
+      <Image source={require('../assets/download3.png')} style={styles.image} />
       <Text style={styles.header}>Rekisteröidy Avantosilakkaan</Text>
       <TextInput
         style={[{ marginTop: 40 }, styles.input]}

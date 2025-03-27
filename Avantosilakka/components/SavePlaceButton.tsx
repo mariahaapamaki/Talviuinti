@@ -1,25 +1,9 @@
 import React, { useState } from 'react';
 import { View, Button, StyleSheet, Alert, Modal, Text, Pressable, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message';
-import { getBaseUrl } from '../services/api';
-import { getCurrentUser } from "../context/Auth.actions";
 import { Checkbox, TextInput } from 'react-native-paper';
-import axios from 'axios';
-import geolib from 'geolib';
 import { getDistance } from 'geolib';
 import { saveUserPlace, savePublicPlace } from '../services/swimmingplace';
 import { sanitizeInput } from '../shared/Sanitize';
-
-interface SavePlaceButtonProps {
-  placeData: {
-    name: string;
-    latitude: number;
-    longitude: number;
-  };
-  existingPublicPlaces: Array<{ latitude: number; longitude: number }>; // Existing swimming places
-  onSave: (placeData: any) => void; // Function to handle saving the place
-}
 
 interface Place {
   name: string;
@@ -105,11 +89,11 @@ const SavePlaceButton = (props) => {
   };
 
   const handleOpenModal = () => {
-    setInfo(''); // Reset the input fields
-    setPublicInfo(''); // Reset public info field
-    setPublicName(''); // Reset public name field
-    setShowModal(true); // Open the modal
-    setIsPublic(false); // Reset the public place checkbox
+    setInfo('')
+    setPublicInfo('')
+    setPublicName('')
+    setShowModal(true)
+    setIsPublic(false)
   };
 
   return (
@@ -199,7 +183,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Dim background
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   modalView: {
     width: '85%',
@@ -225,10 +209,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButton: {
-    backgroundColor: 'darkblue', // Green color
+    backgroundColor: 'darkblue',
   },
   cancelButton: {
-    backgroundColor: 'darkblue', // Red color
+    backgroundColor: 'darkblue',
   },
   modalButtonText: {
     color: 'white',

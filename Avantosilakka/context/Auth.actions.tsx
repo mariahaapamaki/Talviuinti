@@ -1,4 +1,4 @@
-import { jwtDecode } from 'jwt-decode'; // Ensure correct import
+import { jwtDecode } from 'jwt-decode'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { getBaseUrl } from '../services/api';
@@ -32,7 +32,7 @@ export const loginUser = async (user: { userName: string; password: string }, di
       await AsyncStorage.setItem('jwt', token);
       const decoded: DecodedToken = jwtDecode(token) as DecodedToken;
       const userWithId = { ...user, userId: decoded.userId, firstName: decoded.firstName, lastName: decoded.lastName };
-      await AsyncStorage.setItem('user', JSON.stringify(userWithId)); // Store user object with userId
+      await AsyncStorage.setItem('user', JSON.stringify(userWithId)); 
       dispatch(setCurrentUser(decoded, userWithId));
       return true;
     } else {
@@ -60,12 +60,11 @@ export const getCurrentUser = async () => {
   if (userString) {
     const user = JSON.parse(userString);
 
-    // If userId is missing, retrieve it from the token
     if (!user.userId) {
       const token = await AsyncStorage.getItem('jwt');
       if (token) {
         const decoded: DecodedToken = jwtDecode<DecodedToken>(token);
-        user.userId = decoded.userId; // Ensure the user object has the userId property
+        user.userId = decoded.userId; 
         console.log('test',user)
         await AsyncStorage.setItem('user', JSON.stringify(user));
         console.log("Updated user with ID:", user);

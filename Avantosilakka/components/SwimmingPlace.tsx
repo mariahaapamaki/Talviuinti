@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, Modal, TextInput, Pressable, Alert, Button, TouchableOpacity} from 'react-native';
-import MapView, { Marker, Region } from 'react-native-maps';
-import * as Location from 'expo-location';
-import SavePlaceButton from './SavePlaceButton';
-import GetButton from './LocationScreenSettings';
-import { Image } from 'expo-image';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import { getBaseUrl } from '../services/api';
-import { getCurrentUser } from "../context/Auth.actions";
-import axios from 'axios';
 import { saveComment } from '../services/swimmingplace';
 import { sanitizeInput } from '../shared/Sanitize';
 
@@ -47,11 +38,11 @@ const SwimmingPlace =  (props: SwimmingPlaceProps) => {
       <TextInput
         style={styles.commentInput}
         placeholder='Kommentti'
-        placeholderTextColor="#888" // Subtle placeholder color
+        placeholderTextColor="#888"
         value={placeComment}
         onChangeText={(text) => setPlaceComment(sanitizeInput(text))}
-        multiline={true} // Allow multiline input
-        numberOfLines={4} // Define visible rows
+        multiline={true}
+        numberOfLines={4}
       />
       <TouchableOpacity style={styles.saveButton} onPress={() => handleSave(placeComment)}>
         <Text style={styles.saveButtonText}>Tallenna kommentti</Text>
@@ -77,7 +68,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     padding: 10,
-    textAlignVertical: 'top', // Aligns text to the top for multiline input
+    textAlignVertical: 'top',
     backgroundColor: '#f9f9f9',
     fontSize: 14,
     marginBottom: 20,

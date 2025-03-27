@@ -8,7 +8,7 @@ const Header = () => {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.headerContainer}>
             <Image
-              source={require('./download3.png')}
+              source={require('../assets/download3.png')}
               style={styles.logo}
               contentFit="contain"
               contentPosition="center"
@@ -21,32 +21,31 @@ const Header = () => {
     
     const styles = StyleSheet.create({
       safeArea: {
-        backgroundColor: '#f3f4f6', // Match the header background
+        backgroundColor: '#f3f4f6', 
       },
       headerContainer: {
-        flexDirection: 'row', // Align items in a row
-        alignItems: 'center', // Vertically align items
-        justifyContent: 'flex-start', // Align items to the left
-        backgroundColor: 'skyblue', // Subtle gray background
+        flexDirection: 'row', 
+        alignItems: 'center',
+        justifyContent: 'flex-start', 
+        backgroundColor: 'skyblue',
         paddingVertical: 10,
-        paddingHorizontal: 20, // Add some space from the left edge
+        paddingHorizontal: 20, 
         shadowColor: '#000',
         shadowOpacity: 0.1,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 5,
-        elevation: 2, // Shadow for Android
+        elevation: 2, 
         },    
       logo: {
         height: 60,
         width: 60,
         marginRight: 10,
-        borderRadius: 50 , // Half of width and height to make it round
+        borderRadius: 50 ,
       },
       title: {
         fontSize: 20,
         fontWeight: 'bold',
         color: 'white',
-       // paddingHorizontal: 10,
       },
     });
   

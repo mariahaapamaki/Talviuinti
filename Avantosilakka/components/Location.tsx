@@ -194,7 +194,7 @@ export default function ShowLocation() {
         }}
       >
         <View style={styles.modalView}>
-          {selectedPlace && ( // Render selected place data in modal
+          {selectedPlace && (
             <View>
               <Text style={styles.header}> {selectedPlace.name}</Text>
               <Text>Lisätiedot: {selectedPlace.publicInfo}</Text>
@@ -251,7 +251,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 20,
-   // textAlign: 'left', // Aligns text to the left
   },
   container: {
     flex: 1,
@@ -299,7 +298,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#333', // Dark grey text color
+    color: '#333',
     fontSize: 16,
     fontWeight: '500'
   },
@@ -320,32 +319,32 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   scrollContainer: {
-    maxHeight: '60%', // Ensures the comment section doesn't overflow
-    width: '80%', // Takes full width of the modal
+    maxHeight: '60%', 
+    width: '80%', 
     marginTop: 20,
   },
   commentContainer: {
-    borderWidth: 1, // Add a border around each comment
-    borderColor: '#ccc', // Subtle border color
-    borderRadius: 8, // Rounded corners for a softer look
-    padding: 10, // Add padding inside the comment box
-    marginBottom: 10, // Space between comments
-    backgroundColor: '#f9f9f9', // Light background for contrast
-    shadowColor: '#000', // Optional shadow for a 3D effect
+    borderWidth: 1, 
+    borderColor: '#ccc', 
+    borderRadius: 8, 
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#f9f9f9',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 1, // For Android shadow effect
+    elevation: 1,
   },
   commentText: {
     fontSize: 16,
-    color: '#333', // Darker text color for better readability
+    color: '#333', 
   },
   userText: {
     fontSize: 14,
-    color: '#777', // Lighter text color for user names
-    marginTop: 5, // Space between comment and user name
-    fontStyle: 'italic', // Italics for stylistic emphasis
+    color: '#777', 
+    marginTop: 5, 
+    fontStyle: 'italic',
   },
 });
 

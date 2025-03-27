@@ -57,7 +57,7 @@ const Login = (props: LoginProps) => {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../components/download3.png')} style={styles.image} />
+      <Image source={require('../assets/download3.png')} style={styles.image} />
       <Text style={styles.header}>Kirjaudu Avantosilakkaan</Text>
       <TextInput
         style={[{ marginTop: 40 }, styles.input]}
